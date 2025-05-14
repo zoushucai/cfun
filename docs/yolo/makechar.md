@@ -1,0 +1,3 @@
+## makechar
+
+::: cfun.yolo.makechar

@@ -1,0 +1,77 @@
+[project]
+name = "cfun"
+version = "0.4.4"
+description = "my function library"
+readme = "README.md"
+authors = [
+    { name = "zoushucai", email = "zoushucai@users.noreply.github.com" }
+]
+requires-python = ">=3.10"
+#尽可能的使用较低版本， 因为自用，在导入别人的包的时候，可能会有版本冲突
+dependencies = [
+    "char-similar-z>=0.2.0",
+    "pandas>=1.5.0",
+    "pyarrow>=17.0.0",
+    "requests>=2.0.0",
+    "scikit-learn>=1.1.0",
+    "pillow>= 10.0.0",
+    "opencv-python>=4.5.0",
+    "jsonpath>=0.6.0",
+    "onnxruntime==1.21.0",
+    "onnx>=1.18.0",
+    "py3-wget>=1.0.12",
+]
+
+[dependency-groups]
+dev = [
+    "cfundata >= 0.3.1",
+    "ddddocr>=1.5.0",
+    "imgocr>=0.1.4",
+    "mkdocs>=1.6.1",
+    "mkdocs-autorefs>=1.4.1",
+    "mkdocs-material>=9.6.12",
+    "mkdocstrings[python]>=0.29.1",
+    "pycorrector>=1.0.0",
+    "pytest>=8.3.5",
+    "ruff>=0.11.8",
+    "ultralytics>=8.3.0",
+]
+
+# [tool.uv.sources]
+# onnxruntime = [
+#   { index = "onnxruntime" }
+# ]
+
+# [[tool.uv.index]]
+# name = "onnxruntime"
+# url = "https://pypi.org/simple"
+# explicit = true  # 仅用于指定的包
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'"
+]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+
+[tool.ruff.lint]
+extend-select = ["B"]  
+
+[project.scripts]
+testing-demo = "cfun:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.urls]
+Homepage = "https://github.com/zoushucai/cfun"
+Documentation = "https://cfun.readthedocs.org"
+Repository = "https://github.com/zoushucai/cfun.git"
+Issues = "https://github.com/zoushucai/cfun/issues"
+Changelog = "https://github.com/zoushucai/cfun/blob/main/CHANGELOG.md"
