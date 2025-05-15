@@ -6,6 +6,7 @@ import urllib.parse
 import uuid
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -332,10 +333,25 @@ class Pan123openAPI:
         return response
 
     @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
-    def upload_file_data(
-        self, f, preuploadID, start_seek, length, idx, task_upload_per
-    ):
-        """分片上传函数，传入已打开的文件对象f"""
+    def _upload_file_data(
+        self,
+        f: BytesIO,
+        preuploadID: int,
+        start_seek: int,
+        length: int,
+        idx: int,
+        task_upload_per: int,
+    ) -> bool:
+        """分片上传函数，传入已打开的文件对象f
+
+        Args:
+            f (io.BytesIO): 文件对象
+            preuploadID (int): 预上传 ID
+            start_seek (int): 文件指针起始位置
+            length (int): 文件长度
+            idx (int): 分片索引
+            task_upload_per (int): 上传进度引用
+        """
         data_response = self.file.get_upload_url(preuploadID, idx + 1)
         presignedURL = data_response.data["presignedURL"]
         assert presignedURL, "获取 presignedURL 失败"
@@ -346,11 +362,18 @@ class Pan123openAPI:
             timeout=60,
         )
         # 上传成功，标记进度为100%
-        task_upload_per[idx] = 100.0
+        task_upload_per[idx] = 100
         return True
 
-    def _validate_and_prepare_paths(self, filename, upload_name):
-        """验证和准备文件路径"""
+    def _validate_and_prepare_paths(
+        self, filename: Union[str, Path], upload_name: Optional[Union[str, Path]] = None
+    ) -> tuple[str, str]:
+        """验证和准备文件路径
+
+        Args:
+            filename (Union[str, Path]): 本地文件路径
+            upload_name (Optional[Union[str, Path]]): 上传到云端的文件名. 如果为 None，则使用本地文件名
+        """
 
         filename = Path(filename) if not isinstance(filename, Path) else filename
         upload_name = Path(upload_name) if upload_name else filename.name
@@ -360,8 +383,13 @@ class Pan123openAPI:
 
         return str(filename), str(upload_name)
 
-    def _find_existing_file(self, parentFileID, upload_name):
-        """查找云端是否已存在同名文件"""
+    def _find_existing_file(self, parentFileID: int, upload_name: str):
+        """查找云端是否已存在同名文件
+
+        Args:
+            parentFileID (int): 父目录 ID
+            upload_name (str): 上传的文件名
+        """
         exist = self.file.list_v2(
             parentFileID, searchData=upload_name, limit=10, searchMode=1
         )
@@ -378,15 +406,15 @@ class Pan123openAPI:
         upload_name: Optional[Union[str, Path]] = None,
         parentFileID: int = 0,
         overwrite: bool = False,
-    ):
+    ) -> int:
         """
-        上传文件（不覆盖）。失败返回 -1，成功返回文件 ID。
+        上传文件。失败返回 -1，成功返回文件 ID。
 
         Args:
             filename (str | Path): 上传的文件名
-            upload_name (str | Path, optional): 上传到的文件名. Defaults to None.
-            parentFileID (int, optional): 上传到的目录 ID. Defaults to 0.
-            overwrite (bool, optional): 是否覆盖同名文件. Defaults to False.
+            upload_name (str | Path, optional): 上传云端的文件名. 如果为 None，则使用本地文件名.
+            parentFileID (int, optional): 上传到云端的目录 ID. 默认为根目录下
+            overwrite (bool, optional): 是否强制覆盖同名文件. 如果云端存在同名文件，则默认会报错.
 
         Returns:
             int: 文件 ID 或 -1
@@ -436,7 +464,7 @@ class Pan123openAPI:
 
                 with open(filename, "rb") as f_slice:
                     f_slice.seek(start)
-                    success = self.upload_file_data(
+                    success = self._upload_file_data(
                         f_slice, preuploadID, start, size, sliceNo, task_upload_per
                     )
                     if not success:
@@ -461,11 +489,13 @@ class Pan123openAPI:
                     avg = sum(task_upload_per) / total_sliceNo
                     print(f"\r文件上传进度: {avg:.1f}%(共{total_sliceNo}分片)", end="")
 
+            print("\n分片上传完成，开始合并分片...")
             # 通知服务器上传完成
             data_response = self.file.upload_complete(preuploadID)
             # print("\n服务器上传完成后的响应数据:\n")
             # print(data_response.data)
             if data_response.data["completed"]:
+                print("文件上传完成")
                 return data_response.data["fileID"]
 
             # 如果是异步上传，轮询结果
@@ -474,6 +504,7 @@ class Pan123openAPI:
                     time.sleep(2)
                     data_response = self.file.upload_async_result(preuploadID)
                     if data_response.data["completed"]:
+                        print("文件上传完成")
                         return data_response.data["fileID"]
         return -1
 
