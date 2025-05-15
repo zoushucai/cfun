@@ -471,7 +471,7 @@ class Pan123openAPI:
             # 如果是异步上传，轮询结果
             if data_response.data["async"]:
                 while True:
-                    time.sleep(1)
+                    time.sleep(2)
                     data_response = self.file.upload_async_result(preuploadID)
                     if data_response.data["completed"]:
                         return data_response.data["fileID"]
