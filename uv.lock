@@ -176,7 +176,7 @@ wheels = [
 
 [[package]]
 name = "cfun"
-version = "0.4.4"
+version = "0.4.5"
 source = { editable = "." }
 dependencies = [
     { name = "char-similar-z" },
@@ -190,6 +190,7 @@ dependencies = [
     { name = "pyarrow" },
     { name = "requests" },
     { name = "scikit-learn" },
+    { name = "tenacity" },
 ]
 
 [package.dev-dependencies]
@@ -220,6 +221,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=17.0.0" },
     { name = "requests", specifier = ">=2.0.0" },
     { name = "scikit-learn", specifier = ">=1.1.0" },
+    { name = "tenacity", specifier = ">=9.1.2" },
 ]
 
 [package.metadata.requires-dev]
@@ -239,14 +241,14 @@ dev = [
 
 [[package]]
 name = "cfundata"
-version = "0.3.1"
+version = "0.3.2"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
 dependencies = [
     { name = "pooch" },
 ]
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/54/42/28d41fcef89c3503575e8660d878444fd3177adec2053949ab17da2d0a61/cfundata-0.3.1.tar.gz", hash = "sha256:5eac5da523c3fa0b3d4bc56ae33a635081fa046d9ab59020e0d1881e6fb787a6", size = 40746, upload-time = "2025-05-11T09:23:50.791Z" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/40/c1/8018ef3b3f012fcf0a07cd8229fb2b600de496802f6a3c32c042ad830f1c/cfundata-0.3.2.tar.gz", hash = "sha256:d2870ec144c5abeb5ec7f546baa98bf5642fb375bf45f974b9d52df1834d88a9", size = 40887, upload-time = "2025-05-14T08:49:57.512Z" }
 wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/86/00/00ceae418454055dcd589492542674b7e5c973a78e13ebd97a8e1d062e42/cfundata-0.3.1-py3-none-any.whl", hash = "sha256:9c78dd07a1b0463de28445a091a3840cb45da55b1ede570e21d9cb6f30fe9601", size = 4599, upload-time = "2025-05-11T09:23:49.532Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/1a/2a/5c2446e1ee39c3c5ca3da687b5fb49c76b45d4503194691c129b0d61bbc6/cfundata-0.3.2-py3-none-any.whl", hash = "sha256:faf893196d35472a3e58e7ba3385e395a3547c925c4e6ad92936144f36577e05", size = 4743, upload-time = "2025-05-14T08:49:55.871Z" },
 ]
 
 [[package]]
@@ -2482,6 +2484,15 @@ dependencies = [
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/83/d3/803453b36afefb7c2bb238361cd4ae6125a569b4db67cd9e79846ba2d68c/sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517", size = 7793921, upload-time = "2025-04-27T18:05:01.611Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5", size = 6299353, upload-time = "2025-04-27T18:04:59.103Z" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.1.2"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/0a/d4/2b0cd0fe285e14b36db076e78c93766ff1d529d70408bd1d2a5a84f1d929/tenacity-9.1.2.tar.gz", hash = "sha256:1169d376c297e7de388d18b4481760d478b0e99a777cad3a9c86e556f4b697cb", size = 48036, upload-time = "2025-04-02T08:25:09.966Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/e5/30/643397144bfbfec6f6ef821f36f33e57d35946c44a2352d3c9f0ae847619/tenacity-9.1.2-py3-none-any.whl", hash = "sha256:f77bf36710d8b73a50b2dd155c97b870017ad21afe6ab300326b0371b3b05138", size = 28248, upload-time = "2025-04-02T08:25:07.678Z" },
 ]
 
 [[package]]

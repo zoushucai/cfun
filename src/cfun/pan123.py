@@ -6,9 +6,11 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
 from typing import List, Optional, Union
-
+import math
 import requests
 from py3_wget import download_file
+import threading
+from tenacity import retry, stop_after_attempt, wait_random
 
 
 def get_direct_signed_link(url, uid, primary_key, expired_time_sec):
@@ -262,6 +264,7 @@ class Pan123openAPI:
         self.file = _File(self)
         self.link = _Link(self)
 
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def refresh_access_token(self, access_token=None) -> DataResponse:
         """重新获取 access_token，或手动设置 access_token. 调用此函数后，才可以调用其它函数对 123pan 进行操作。
 
@@ -301,7 +304,8 @@ class Pan123openAPI:
         self.access_token_expiredAt = data_response.data["expiredAt"]
 
         return data_response
-
+    
+    @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=5))
     def request(self, method, url, data=None, files=None) -> requests.Response:
         """简单请求服务器。
 
@@ -324,27 +328,25 @@ class Pan123openAPI:
         response = getattr(requests, method)(
             url, data=data, headers=headers, files=files
         )
-
         return response
 
-    def upload_file_data(self, filename, preuploadID, start_seek, length, idx):
-        """分片上传函数"""
-        with open(filename, "rb") as f:
-            while True:
-                data_response = self.file.get_upload_url(preuploadID, idx + 1)
-                presignedURL = data_response.data["presignedURL"]
-                f.seek(start_seek)
-                try:
-                    requests.put(
-                        presignedURL,
-                        data=UploadInChunks(
-                            f, length, idx, self.task_upload_per, chunksize=1024
-                        ),
-                        timeout=60,
-                    )
-                    break
-                except requests.exceptions.RequestException:
-                    continue
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
+    def upload_file_data(self, f, preuploadID, start_seek, length, idx, task_upload_per):
+        """分片上传函数，传入已打开的文件对象f"""
+        data_response = self.file.get_upload_url(preuploadID, idx + 1)
+        presignedURL = data_response.data["presignedURL"]
+        assert presignedURL, "获取 presignedURL 失败"
+        f.seek(start_seek)
+        requests.put(
+            presignedURL,
+            data=UploadInChunks(f, length, idx, task_upload_per, chunksize=1024),
+            timeout=60,
+        )
+        # 上传成功，标记进度为100%
+        task_upload_per[idx] = 100.0
+        return True
+
+
 
     def upload(
         self,
@@ -372,103 +374,87 @@ class Pan123openAPI:
             raise ValueError("上传名称必须是字符串或路径对象")
 
         if not filename.exists():
-            raise ValueError(f"文件 {filename} 不存在")
-        # 确保最终格式为字符串
+            raise ValueError(f"本地文件 {filename} 不存在")
         filename = str(filename)
         upload_name = str(upload_name)
 
-        f = open(filename, "rb")
-        file_etag = self.file.md5(f)
-        f.seek(0, 2)
-        file_size = f.tell()
-        f.seek(0)
-        # 如果存在同名文件，则显示文件已存在
+        # 检查同名文件
         exist = self.file.list_v2(
-            parentFileID, searchData=fname, limit=10, searchMode=1
+            parentFileID, searchData=upload_name, limit=10, searchMode=1
         )
-        matched_files = (
+        matched_files = [
             f
             for f in exist.fileList
-            if f["type"] == 0  # 是文件
-            and f["filename"] == fname  # 精确匹配
-            and not f["trashed"]  # 不在回收站
-        )
+            if f["type"] == 0 and f["filename"] == upload_name and not f["trashed"]
+        ]
         if matched_files and not overwrite:
-            warnings.warn(f"文件 {fname} 已存在，请更换文件名", stacklevel=2)
+            warnings.warn(f"云端文件 {upload_name} 已存在，请更换文件名", stacklevel=2)
             return -1
         if matched_files and overwrite:
-            # 删除同名文件
             self.file.trash(matched_files[0]["fileId"])
-            warnings.warn(f"文件 {fname} 已存在，已强制删移除到回收站", stacklevel=2)
+            warnings.warn(f"云端文件 {upload_name} 已存在，已强制删移除到回收站", stacklevel=2)
 
-        # 创建文件
-        data_response = self.file.create(
-            parentFileID=parentFileID,
-            filename=upload_name,
-            etag=file_etag,
-            size=file_size,
-        )
+        with open(filename, "rb") as f:
+            file_etag = self.file.md5(f)
+            f.seek(0, 2)
+            file_size = f.tell()
+            f.seek(0)
 
-        if data_response.code != 0:
-            raise ValueError(data_response.message)
+            # 创建文件元信息
+            data_response = self.file.create(
+                parentFileID=parentFileID,
+                filename=upload_name,
+                etag=file_etag,
+                size=file_size,
+            )
+            if data_response.code != 0:
+                raise ValueError(data_response.message)
 
-        if data_response.data["reuse"]:
-            print("秒传成功....")
-            return data_response.data["fileID"]
+            if data_response.data["reuse"]:
+                print("秒传成功....")
+                return data_response.data["fileID"]
 
-        preuploadID = data_response.data["preuploadID"]
-        sliceSize = data_response.data["sliceSize"]
-        total_sliceNo = file_size // sliceSize + bool(file_size % sliceSize)
+            preuploadID = data_response.data["preuploadID"]
+            sliceSize = data_response.data["sliceSize"]
 
-        sliceNo = 1
-        self.task_upload_per = []
-        task_list = []
+            total_sliceNo = math.ceil(file_size / sliceSize)
+            task_upload_per = [0.0] * total_sliceNo
 
-        with ThreadPoolExecutor(max_workers=2) as t:
-            while sliceNo <= total_sliceNo:
-                time.sleep(1)
-                start_seek = f.tell()
-                if start_seek + sliceSize > file_size:
-                    f.seek(0, 2)
-                else:
-                    f.seek(sliceSize, 1)
-                end_seek = f.tell()
+            # 顺序上传分片
+            for idx, sliceNo in enumerate(range(total_sliceNo)):
+                start = sliceNo * sliceSize
+                size = min(sliceSize, file_size - start)
 
-                self.task_upload_per.append(0)
-                task_list.append(
-                    t.submit(
-                        self.upload_file_data,
-                        filename,
-                        preuploadID,
-                        start_seek,
-                        end_seek - start_seek,
-                        sliceNo - 1,
-                    )
-                )
-                sliceNo += 1
+                success = self.upload_file_data(f, preuploadID, start, size, sliceNo, task_upload_per)
+                if not success:
+                    print("上传中断，退出。")
+                    return -1
 
-            while True:
-                progress_str = " | ".join(f"{p:.1f}%" for p in self.task_upload_per)
-                print(f"\r文件上传进度: [{progress_str}]", end="")
-                if len(wait(task_list, timeout=1).done) == len(task_list):
-                    print()
-                    break
+                avg = sum(task_upload_per) / total_sliceNo
+                print(f"\r文件上传进度: {avg:.1f}%（共 {total_sliceNo} 分片）,现在是第 {idx + 1} 分片", end="")
+                if idx == total_sliceNo - 1 and file_size >= sliceSize:
+                    res = self.file.list_upload_parts(preuploadID)
+                    print("----"*10)
+                    print(res.data)
+                    
+            print("\r文件上传进度: 100.0%（全部上传完成）")
 
-        f.close()
+            # 通知服务器上传完成
+            data_response = self.file.upload_complete(preuploadID)
+            print(data_response.data)
+            if data_response.data["completed"]:
+                return data_response.data["fileID"]
 
-        # 完成上传
-        data_response = self.file.upload_complete(preuploadID)
-        if data_response.data["completed"]:
-            return data_response.data["fileID"]
-
-        if data_response.data["async"]:
-            while True:
-                time.sleep(1)
-                data_response = self.file.upload_async_result(preuploadID)
-                if data_response.data["completed"]:
-                    return data_response.data["fileID"]
+            # 如果是异步上传，轮询结果
+            if data_response.data["async"]:
+                while True:
+                    time.sleep(1)
+                    data_response = self.file.upload_async_result(preuploadID)
+                    if data_response.data["completed"]:
+                        return data_response.data["fileID"]
 
         return -1
+
 
     def download(
         self, filename: str | list[str], onlyurl: bool = False, overwrite: bool = False
@@ -823,6 +809,7 @@ class _File:
         self.baseurl = super_pan123.baseurl
         self.request = super_pan123.request
 
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def list_v2(self, parentFileId, **kwargs):
         """
         新版罗列目录文件。参见：https://123yunpan.yuque.com/org-wiki-123yunpan-muaork/cr6ced/rei7kh5mnze2ad4q
@@ -873,10 +860,14 @@ class _File:
 
         response = self.request("get", self.baseurl.FILE_LIST_V2, kwargs)
 
+        jsondata = response.json()
+        assert jsondata.get("code") == 0 and jsondata.get("data", None) is not None, "罗列目录文件失败"
+        
         data_response = DataResponse(response)
 
         return data_response
-
+    
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def list(self, parentFileId, **kwargs):
         """
         罗列目录文件。参见：https://123yunpan.yuque.com/org-wiki-123yunpan-muaork/cr6ced/hosdqqax0knovnm2
@@ -924,11 +915,13 @@ class _File:
         kwargs["orderDirection"] = kwargs.get("orderDirection", "asc")
 
         response = self.request("get", self.baseurl.FILE_LIST, kwargs)
-
+        jsondata = response.json()
+        assert jsondata.get("code") == 0 and jsondata.get("data", None) is not None, "罗列目录文件失败0"
         data_response = DataResponse(response)
 
         return data_response
 
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def trash(self, fileIDs: Union[int, List]):
         """
         删除文件，将文件放入回收站中。
@@ -940,7 +933,8 @@ class _File:
             fileIDs = [fileIDs]
 
         response = self.request("post", self.baseurl.FILE_TRASH, {"fileIDs": fileIDs})
-
+        jsondata = response.json()
+        assert jsondata.get("code") == 0, "删除文件失败"
         data_response = DataResponse(response)
 
         return data_response
@@ -1046,6 +1040,7 @@ class _File:
 
         return md5_hash.hexdigest()
 
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def create(self, parentFileID: int, filename: str, etag: str, size: int):
         """
         上传文件的过程方法，用于创建文件。
@@ -1068,6 +1063,7 @@ class _File:
         :param size: 文件大小
         :return: 服务器响应数据
         """
+
         response = self.request(
             "post",
             self.baseurl.FILE_UPLOAD_CREATE,
@@ -1078,11 +1074,14 @@ class _File:
                 "size": size,
             },
         )
-
+        response.raise_for_status()
+        jsondata = response.json()
+        assert jsondata.get("code") == 0 and jsondata.get("data", None) is not None, "创建文件失败，数据为空"
         data_response = DataResponse(response)
 
         return data_response
-
+    
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def list_upload_parts(self, preuploadID: int):
         """
         上传文件的过程方法，用于罗列已上传文件部分。
@@ -1102,16 +1101,20 @@ class _File:
         :param preuploadID: 预上传ID。
         :return: 服务器响应数据
         """
+
         response = self.request(
             "post",
             self.baseurl.FILE_UPLOAD_LIST_UPLOAD_PARTS,
             {"preuploadID": preuploadID},
         )
-
+        response.raise_for_status()
+        jsondata = response.json()
+        assert jsondata.get("code") == 0 and jsondata.get("data", None) is not None, "获取已上传分片失败，数据为空"
         data_response = DataResponse(response)
-
         return data_response
 
+
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def get_upload_url(self, preuploadID: int, sliceNo: int):
         """
         上传文件的过程方法，获取上传地址。
@@ -1128,16 +1131,22 @@ class _File:
         :param sliceNo: 分片序号，从1开始自增
         :return: 服务器响应数据
         """
+
         response = self.request(
             "post",
             self.baseurl.FILE_UPLOAD_GET_UPLOAD_URL,
             {"preuploadID": preuploadID, "sliceNo": sliceNo},
         )
-
+        response.raise_for_status()
+        jsondata = response.json()
+        assert jsondata.get("code") == 0 and jsondata.get("data", None) is not None, "获取上传地址失败，数据为空"
         data_response = DataResponse(response)
-
         return data_response
 
+                
+        
+
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def upload_complete(self, preuploadID: int):
         """
         上传文件的过程方法，上传文件完成请求。
@@ -1156,14 +1165,19 @@ class _File:
         :param preuploadID: 预上传ID。
         :return: 服务器响应数据
         """
+
         response = self.request(
             "post", self.baseurl.FILE_UPLOAD_COMPLETE, {"preuploadID": preuploadID}
         )
-
+        response.raise_for_status()
+        resjson = response.json()
+        assert resjson.get("code") == 0 and resjson.get("data", None) is not None, "上传完成请求失败，数据为空"
         data_response = DataResponse(response)
-
         return data_response
 
+            
+            
+    @retry(stop=stop_after_attempt(50), wait=wait_random(min=1, max=5))
     def upload_async_result(self, preuploadID: int):
         """
         上传文件的过程方法，上传文件完成请求。
@@ -1183,12 +1197,16 @@ class _File:
         :return: 服务器响应数据
         """
         response = self.request(
-            "post", self.baseurl.FILE_UPLOAD_ASYNC_RESULT, {"preuploadID": preuploadID}
+            "post",
+            self.baseurl.FILE_UPLOAD_ASYNC_RESULT,
+            {"preuploadID": preuploadID},
         )
-
+        response.raise_for_status()
+        resjson = response.json()
+        assert resjson.get("code") == 0 and resjson.get("data", None) is not None, "上传异步结果请求失败，数据为空"
         data_response = DataResponse(response)
-
         return data_response
+
 
     def upload(
         self,

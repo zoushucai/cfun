@@ -1,11 +1,9 @@
 [project]
 name = "cfun"
-version = "0.4.4"
+version = "0.4.5"
 description = "my function library"
 readme = "README.md"
-authors = [
-    { name = "zoushucai", email = "zoushucai@users.noreply.github.com" }
-]
+authors = [{ name = "zoushucai", email = "zoushucai@users.noreply.github.com" }]
 requires-python = ">=3.10"
 #尽可能的使用较低版本， 因为自用，在导入别人的包的时候，可能会有版本冲突
 dependencies = [
@@ -20,6 +18,7 @@ dependencies = [
     "onnxruntime==1.21.0",
     "onnx>=1.18.0",
     "py3-wget>=1.0.12",
+    "tenacity>=9.1.2",
 ]
 
 [dependency-groups]
@@ -49,7 +48,7 @@ dev = [
 
 [tool.uv]
 required-environments = [
-    "sys_platform == 'darwin' and platform_machine == 'x86_64'"
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
 ]
 
 
@@ -60,7 +59,7 @@ python_functions = "test_*"
 
 
 [tool.ruff.lint]
-extend-select = ["B"]  
+extend-select = ["B"]
 
 [project.scripts]
 testing-demo = "cfun:main"

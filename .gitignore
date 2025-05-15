@@ -14,3 +14,4 @@ idcard
 model
 drop
 epoch150.pt
+*.rar
