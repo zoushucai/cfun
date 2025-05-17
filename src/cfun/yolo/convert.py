@@ -21,7 +21,7 @@ def json_to_yolo_txt(
     label_key: str,
     class_mapping: dict[int, str],
     output_dir: Union[Path, str],
-    image_dir: Union[Path, str] = None,
+    image_dir: None | Path | str = None,
     image_suffix: str = ".png",
     force_overwrite: bool = False,
     ischeck: bool = True,
@@ -34,7 +34,7 @@ def json_to_yolo_txt(
         label_key (str): 用于分类的键,如 "label"
         class_mapping (dict[int, str]): 类别映射字典, 键为整数 ID,从0开始，值为字符串类名,类别名称映射字典，对应json中的label_key
         output_dir (Union[Path, str]): 输出的 TXT 文件的目录
-        image_dir (Union[Path, str], optional): 原始图像文件所在目录. json文件和图像文件同名
+        image_dir (None | Path | str): 原始图像文件所在目录. json文件和图像文件同名
         image_suffix (str): 图像文件后缀名, 默认 ".png"
         force_overwrite (bool): 是否强制覆盖输出目录, 默认 False
         ischeck (bool): 是否检查图像文件是否存在, 默认 True, 如果为True, 则会根据json文件的名称去检查图像文件是否存在, 如果不存在则报错
@@ -91,6 +91,7 @@ def json_to_yolo_txt(
     # 获取 JSON 文件和对应的图像文件
     json_files = list(json_dir.glob("*.json"))
     if ischeck and image_dir:
+        image_dir = Path(image_dir)
         for json_file in json_files:
             image_path = image_dir / (json_file.stem + image_suffix)
             if not image_path.exists():
@@ -148,10 +149,10 @@ def _crop_rotated_box(image: Image.Image, points: list) -> Image.Image:
     pts = np.array(points, dtype=np.float32)
 
     # 计算目标宽高
-    width_top = np.linalg.norm(pts[0] - pts[1])
-    width_bottom = np.linalg.norm(pts[3] - pts[2])
-    height_left = np.linalg.norm(pts[0] - pts[3])
-    height_right = np.linalg.norm(pts[1] - pts[2])
+    width_top = float(np.linalg.norm(pts[0] - pts[1]))
+    width_bottom = float(np.linalg.norm(pts[3] - pts[2]))
+    height_left = float(np.linalg.norm(pts[0] - pts[3]))
+    height_right = float(np.linalg.norm(pts[1] - pts[2]))
     width = int(max(width_top, width_bottom))
     height = int(max(height_left, height_right))
 

@@ -21,8 +21,8 @@ class Detector:
     def __init__(
         self,
         model: str | Path,
-        names: dict[int, str] = None,
-        imgsz: tuple[int, int] = None,
+        names: Optional[dict[int, str]] = None,
+        imgsz: int | tuple[int, int] | list[int] | None = (640, 640),
         providers: Optional[list] = None,
     ):
         """初始化
@@ -47,7 +47,26 @@ class Detector:
         if not isinstance(self.names, dict):
             raise TypeError("names must be a dictionary")
 
-        self.imgsz = (640, 640) if imgsz else extract_info_from_onnx(model, "imgsz")
+        if isinstance(imgsz, int):
+            imgsz = (imgsz, imgsz)
+        elif isinstance(imgsz, list):
+            if len(imgsz) == 1:
+                imgsz = (imgsz[0], imgsz[0])
+            elif len(imgsz) == 2:
+                imgsz = (imgsz[0], imgsz[1])
+            else:
+                raise ValueError("imgsz must be int, tuple or list of 1 or 2 integers")
+        elif isinstance(imgsz, tuple):
+            if len(imgsz) == 1:
+                imgsz = (imgsz[0], imgsz[0])
+            elif len(imgsz) == 2:
+                imgsz = (imgsz[0], imgsz[1])
+            else:
+                raise ValueError("imgsz tuple must have 1 or 2 elements")
+        else:
+            raise ValueError("imgsz must be int, tuple or list of 1 or 2 integers")
+
+        self.imgsz = imgsz
 
         self.model = model  # 后续未使用，暂存
 
@@ -80,7 +99,7 @@ class Detector:
         dw /= 2
         dh /= 2
 
-        img = img.resize(new_unpad, Image.BILINEAR)
+        img = img.resize(new_unpad, Image.Resampling.BILINEAR)
         new_img = Image.new("RGB", new_shape, color)
         new_img.paste(img, (int(dw), int(dh)))
         return new_img, r, (dw, dh)
@@ -207,13 +226,14 @@ class Detector:
         else:
             img_list = source
         results = [self._detect_single(img) for img in img_list]
-        return results
+
+        return results  # type: ignore
 
     def draw_results(
         self,
         img: str | Path | Image.Image | np.ndarray,
-        detections: list,
-        save_path: str,
+        detections: list[dict] | dict,
+        save_path: Union[str, Path],
     ) -> None:
         """在图像上绘制检测结果
 
@@ -231,12 +251,22 @@ class Detector:
             det.draw_results(img_path1, result1[0], save_path="result1.png")
             ```
         """
+        if isinstance(detections, dict):
+            detections = [detections]
+        if not isinstance(detections, list):
+            raise TypeError("detections must be a list or a dict")
+        if not detections:
+            raise ValueError("detections list is empty")
 
         img = load_image(img)
         assert isinstance(img, Image.Image), "img must be a PIL.Image"
         img = img.convert("RGB")
         fontpath = get_chinese_font_path_random()
-        style = ImageFont.truetype(fontpath, 20)
+        if fontpath is None:
+            raise ValueError(
+                "Font path returned None. Please check your font configuration."
+            )
+        style = ImageFont.truetype(str(fontpath), 20)
         draw = ImageDraw.Draw(img)  # 创建一个可以在图片上绘制的对象(相当于画布)
         for det in detections:
             box = det["box"]
@@ -247,7 +277,7 @@ class Detector:
             draw.text((x1 - 10, y1 - 10), f"{name} {conf:.2f}", font=style, fill="blue")
         #
         Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-        img.save(save_path)
+        img.save(str(save_path))
 
 
 if __name__ == "__main__":
@@ -293,16 +323,16 @@ if __name__ == "__main__":
     print(result_mixed)
 
     # 绘制检测结果
-    det.draw_results(img_path1, result1[0], save_path="output/detect1.png")
-    det.draw_results(img_path2, result2[0], save_path="output/detect2.png")
-    det.draw_results(img_path3, result3[0], save_path="output/detect3.png")
-    det.draw_results(img_cv2, result_cv2[0], save_path="output/detect_cv2.png")
-    det.draw_results(img_pil, result_pil[0], save_path="output/detect_pil.png")
+    det.draw_results(img_path1, [result1[0]], save_path="output/detect1.png")
+    det.draw_results(img_path2, [result2[0]], save_path="output/detect2.png")
+    det.draw_results(img_path3, [result3[0]], save_path="output/detect3.png")
+    det.draw_results(img_cv2, [result_cv2[0]], save_path="output/detect_cv2.png")
+    det.draw_results(img_pil, [result_pil[0]], save_path="output/detect_pil.png")
 
     print("-----绘制检测结果完成-----")
     # 画框
     det.draw_results(
         img_path1,
-        result1[0],
+        [result1[0]],
         save_path="output/aaa_2.png",
     )

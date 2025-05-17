@@ -4,8 +4,8 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from ..font import get_chinese_font_path_random
 
+from ..font import get_chinese_font_path_random
 
 
 class MakeCharImage:
@@ -40,8 +40,8 @@ class MakeCharImage:
         text: str,
         image_size: Tuple[int, int] = (64, 64),
         offset: Union[int, float] = 0,
-        font_path: str = None,
-        output_path: Optional[Union[str, Path]] = None,
+        font_path: str | Path | None = None,
+        output_path: str | Path | None = None,
         noise_density: float = 0.25,
     ) -> None:
         assert len(text) == 1, "text must be a single character"
@@ -65,17 +65,26 @@ class MakeCharImage:
 
     @staticmethod
     def random_bg_color() -> Tuple[int, int, int]:
-        return tuple(random.randint(200, 255) for _ in range(3))  # 偏白背景
+        return (
+            random.randint(200, 255),
+            random.randint(200, 255),
+            random.randint(200, 255),
+        )  # 偏白背景
 
     @staticmethod
     def random_text_color() -> Tuple[int, int, int]:
-        return tuple(random.randint(0, 150) for _ in range(3))  # 偏黑文字
+        return (
+            random.randint(0, 150),
+            random.randint(0, 150),
+            random.randint(0, 150),
+        )  # 偏黑文字
 
     def draw_bold_text(self, draw, x, y, font, color):
         for dx in [-self.offset, 0, self.offset]:
             for dy in [-self.offset, 0, self.offset]:
-                draw.text((x + dx, y + dy), self.text, font=font, fill=color,anchor="mm")
-
+                draw.text(
+                    (x + dx, y + dy), self.text, font=font, fill=color, anchor="mm"
+                )
 
     def add_noise(self, image: Image.Image) -> Image.Image:
         arr = np.array(image)
@@ -87,13 +96,13 @@ class MakeCharImage:
     def generate_image(self) -> Image.Image:
         """做图"""
         font_size = int(min(self.image_size) * 0.85)  # 字体大小
-        font = self.load_font(self.font_path, font_size)
+        font = self.load_font(str(self.font_path), font_size)
         if not font:
             raise ValueError(f"Could not load font from: {self.font_path}")
 
         bg_color = self.random_bg_color()
         text_color = self.random_text_color()
-        
+
         # 创建背景（直接使用目标尺寸，避免后续计算问题）
         image = Image.new("RGB", self.image_size, bg_color)
         draw = ImageDraw.Draw(image)
@@ -106,8 +115,9 @@ class MakeCharImage:
         if self.offset > 0:
             self.draw_bold_text(draw, center_x, center_y, font, text_color)
         else:
-            draw.text((center_x, center_y), self.text, font=font, fill=text_color, anchor="mm")
-
+            draw.text(
+                (center_x, center_y), self.text, font=font, fill=text_color, anchor="mm"
+            )
 
         image = self.add_noise(image)
         self.generated_image = image
@@ -124,7 +134,8 @@ class MakeCharImage:
         output = Path(path) if path else self.output_path
         if output:
             output.parent.mkdir(parents=True, exist_ok=True)
-            self.generated_image.save(output)
+            if self.generated_image is not None:
+                self.generated_image.save(str(output))
 
 
 if __name__ == "__main__":
@@ -134,7 +145,7 @@ if __name__ == "__main__":
         text="好",
         image_size=(64, 64),
         offset=0.5,
-        font_path=fonts_path[0],
+        font_path=str(fonts_path[0]),
         output_path="output/A1.png",
         noise_density=0.25,
     )

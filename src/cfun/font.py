@@ -28,6 +28,7 @@ def get_chinese_font_path_random(key="song") -> Optional[Path]:
         # 尝试使用系统字体
         font_paths = get_chinese_font_paths()["chinese"]
         # 优先选择宋体
+        assert isinstance(font_paths, list), "font_paths should be a list"
         songti_fonts = [Path(p) for p in font_paths if key in p.name.lower()]
         if songti_fonts:
             # 路径比较短的
@@ -41,12 +42,12 @@ def get_chinese_font_path_random(key="song") -> Optional[Path]:
     return None
 
 
-def get_chinese_font_paths() -> Dict[str, List[Path]]:
+def get_chinese_font_paths() -> Dict[str, object]:
     """
     获取当前系统中的中文字体文件路径（支持 Windows、Linux、macOS，自动判断是否可用 fc-list 命令来查找字体
 
     Returns:
-        Dict[str, List[Path]]: 包含平台、系统类型与字体路径
+        Dict[str, object]: 包含平台、系统类型与字体路径
     """
     system = platform.system().lower()
     font_paths = []

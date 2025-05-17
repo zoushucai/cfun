@@ -17,7 +17,7 @@ class XLabel:
         platform: str = "",
         fixedtimestamp: bool = False,
         filemd5: Optional[str] = None,
-        namereplace: dict = None,
+        namereplace: Optional[dict] = None,
         shape_type: str = "rectangle",
     ) -> None:
         """初始化XLabel类
@@ -115,7 +115,7 @@ class XLabel:
         assert image_path.suffix.lower() in [".png", ".jpg", ".jpeg"], (
             f"image_path: {image_path} 不是图片文件"
         )
-        assert self._check_data(data, namereplace)
+        assert self._check_data(data, namereplace if namereplace is not None else {})
         assert isinstance(fixedtimestamp, bool), (
             f"fixedtimestamp: {fixedtimestamp} 不是布尔值"
         )
@@ -133,7 +133,7 @@ class XLabel:
                 f"shape_type: {shape_type} 不是 rectangle 或 rotation, 目前只支持这两种类型"
             )
         if shape_type == "rotation":
-            assert "direction" in namereplace.values(), (
+            assert namereplace is not None and "direction" in namereplace.values(), (
                 f"shape_type: {shape_type} 时需要在namereplace中添加一个value为 direction的映射值"
             )
 
@@ -202,10 +202,10 @@ class XLabel:
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def _obtain_attributes(self) -> list[dict]:
+    def _obtain_attributes(self) -> dict:
         """
         获取模板的属性
-        :return: 属性列表
+        :return: 属性字典
         """
         return {
             "pingtai": self.platform,  # 平台名称
@@ -237,23 +237,21 @@ class XLabel:
             # 获取描述信息
             if self.namereplace:
                 for key, value in self.namereplace.items():
-                    if key in item:
+                    if key in item and value in shape:
                         shape[value] = item[key]
             # 填充数据
             shape["points"] = item[self.datakey]
             shape["attributes"] = self._obtain_attributes()
             # 保持字符串格式
-            shape["description"] = (
-                str(shape["description"])
-                if not isinstance(shape["description"], str)
-                else ""
-            )
-            # 保持字符串格式
-            shape["label"] = (
-                str(shape["label"]) if not isinstance(shape["label"], str) else ""
-            )
+            if not isinstance(shape["description"], str):
+                shape["description"] = str(shape["description"])
+
+            if not isinstance(shape["label"], str):
+                shape["label"] = str(shape["label"])
+
             # 保留两位小数
-            shape["score"] = round(shape["score"], 2) if shape["score"] else None
+            if isinstance(shape["score"], (int, float)):
+                shape["score"] = round(shape["score"], 2)
 
             # 置信度
             shapes.append(shape)

@@ -20,8 +20,8 @@ class Classifier:
     def __init__(
         self,
         model: str | Path,
-        names: dict[int, str] = None,
-        imgsz: tuple[int, int] = None,
+        names: Optional[dict[int, str]] = None,
+        imgsz: int | tuple[int, int] | list[int] | None = (64, 64),
         providers: Optional[list] = None,
     ):
         """初始化分类器
@@ -46,6 +46,17 @@ class Classifier:
         if not isinstance(self.names, dict):
             raise TypeError("names must be a dictionary")
 
+        if isinstance(imgsz, int):
+            imgsz = (imgsz, imgsz)
+        if isinstance(imgsz, list):
+            if len(imgsz) == 1:
+                imgsz = (imgsz[0], imgsz[0])
+            elif len(imgsz) == 2:
+                imgsz = (imgsz[0], imgsz[1])
+            else:
+                raise ValueError(
+                    f"imgsz must be a tuple or list of two integers, but got {imgsz!r}"
+                )
         self.imgsz = (64, 64) if imgsz else extract_info_from_onnx(model, "imgsz")
         self.model = model  # 后续未使用，暂存
 
@@ -63,7 +74,16 @@ class Classifier:
         """
         img = load_image(source)
         # 调整大小,后面的是一种插值算法
-        img = img.resize(self.imgsz, Image.BILINEAR)
+        # 确保 self.imgsz 是 (W, H) 的元组或列表
+        if not (
+            isinstance(self.imgsz, (tuple, list))
+            and len(self.imgsz) == 2
+            and all(isinstance(x, int) for x in self.imgsz)
+        ):
+            raise ValueError(
+                f"imgsz must be a tuple or list of two integers, but got {self.imgsz!r}"
+            )
+        img = img.resize(self.imgsz, Image.Resampling.BILINEAR)
         img = np.array(img).astype(np.float32) / 255.0  # 转为 float32 并归一化
         img = np.transpose(img, (2, 0, 1))  # HWC → CHW
         img = np.expand_dims(img, axis=0)  # 添加 batch 维度 → NCHW
@@ -177,15 +197,19 @@ class Classifier:
 
     # 计算两个图片的相似度
     def similarity(
-        self, img_path1: str | Path, img_path2: str | Path, threshold: float = 0.2
+        self,
+        img_path1: str | Path | Image.Image | np.ndarray,
+        img_path2: str | Path | Image.Image | np.ndarray,
+        threshold: float = 0.2,
     ) -> float:
         """计算两个图片的相似度, 采用 Jaccard 相似度
 
         原理: 首先计算两个图片的 top5 类别，类别的概率应该大于阈值，然后计算这两个集合的 Jaccard 相似度。
 
         Args:
-            img_path1 (str | Path): 图片路径1
-            img_path2 (str | Path): 图片路径2
+            img_path1 (str | Path | Image.Image | np.ndarray): 第一张图片的路径或图像对象
+            img_path2 (str | Path | Image.Image | np.ndarray): 第二张图片的路径或图像对象
+            threshold (float, optional): 置信度阈值，默认值为 0.2
 
         Returns:
             float: 相似度

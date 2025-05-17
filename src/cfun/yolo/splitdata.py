@@ -22,10 +22,10 @@ def _create_directories(base_imgpath: str | Path, base_txtpath: str | Path):
 
 def _copy_files(
     file_list: list[str],
-    imgpath: str,
-    txtpath: str,
-    new_imgpath: str,
-    new_txtpath: str,
+    imgpath: str | Path,
+    txtpath: str | Path,
+    new_imgpath: str | Path,
+    new_txtpath: str | Path,
     postfix: str,
     subdir: str,
 ):

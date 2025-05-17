@@ -10,12 +10,13 @@
 """
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Union
 
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from ultralytics import YOLO  # 可以对实验进行精细化设置
+from ultralytics.engine.results import Results
 
 from ..font import get_chinese_font_path_random
 from .base import fillter_top5, jaccard_similarity, load_image
@@ -31,18 +32,18 @@ class DetClsPt:
 
     def __init__(
         self,
-        det_model: Optional[str] = None,
-        cls_model: Optional[str] = None,
-        det_imgsz: int = 640,
-        cls_imgsz: int = 64,
+        det_model: None | str | Path = None,
+        cls_model: None | str | Path = None,
+        det_imgsz: int | tuple[int, int] | list[int] | None = (640, 640),
+        cls_imgsz: int | tuple[int, int] | list[int] | None = (64, 64),
     ):
         """初始化YOLO模型
 
         Args:
-            det_model (Optional[str]): 检测模型路径，默认为None，使用默认模型
-            cls_model (Optional[str]): 分类模型路径，默认为None，使用默认模型
-            det_imgsz (int): 检测模型的输入大小
-            cls_imgsz (int): 分类模型的输入大小
+            det_model (one | str | Path): 检测模型路径，默认为None，使用默认模型
+            cls_model (one | str | Path): 分类模型路径，默认为None，使用默认模型
+            det_imgsz (int | tuple[int, int] | list[int,int]): 检测模型的输入大小
+            cls_imgsz (int | tuple[int, int] | list[int, int]): 分类模型的输入大小
 
         """
         if det_model is None and cls_model is None:
@@ -156,9 +157,15 @@ class DetClsPt:
         names = det_results[0].names  # All class names
         orig_shape = det_results[0].orig_shape  # Original image shape
         # Get bounding box coordinates
-        xyxy = det_results[0].boxes.xyxy.cpu().numpy().tolist()
-        cls = det_results[0].boxes.cls.cpu().numpy().tolist()
-        conf = det_results[0].boxes.conf.cpu().numpy().tolist()
+        if len(det_results) == 0:
+            return []
+        boxes = det_results[0].boxes
+        if boxes is None:
+            return []
+
+        xyxy = boxes.xyxy.cpu().numpy().tolist()  # type: ignore
+        cls = boxes.cls.cpu().numpy().tolist()  # type: ignore
+        conf = boxes.conf.cpu().numpy().tolist()  # type: ignore
         # Step 2: Load image for cropping
         img = self._load_image(source)
 
@@ -206,7 +213,7 @@ class DetClsPt:
         return results
 
     @staticmethod
-    def _extract_classify_result(cls_results: list[dict]) -> dict:
+    def _extract_classify_result(cls_results: list[dict] | List[Results]) -> dict:
         """提取分类结果
 
         Args:
@@ -216,14 +223,24 @@ class DetClsPt:
             dict: 提取后的分类结果
         """
         r = cls_results[0]
-        all_names = r.names  # All class names
-        top1 = r.probs.top1  # Index of the top prediction
-        top1name = all_names[top1]  # Top prediction name
-        top1conf = r.probs.top1conf.item()  # Top prediction confidence
+        if r is None:
+            return {
+                "top1name": None,
+                "top1conf": None,
+                "top1": None,
+                "top5name": None,
+                "top5conf": None,
+                "top5": None,
+            }
 
-        top5 = r.probs.top5  # Indices of the top 5 predictions
+        all_names = r.names  # type: ignore # All class names
+        top1 = r.probs.top1  # type: ignore # Index of the top prediction
+        top1name = all_names[top1]  # Top prediction name
+        top1conf = r.probs.top1conf.item()  # type: ignore # Top prediction confidence
+
+        top5 = r.probs.top5  # type: ignore # Indices of the top 5 predictions
         top5name = [all_names[i] for i in top5]
-        top5conf = r.probs.top5conf.tolist()
+        top5conf = r.probs.top5conf.tolist()  # type: ignore
         return {
             "top1name": top1name,  # Name of the top prediction
             "top1conf": round(top1conf, 4),
@@ -305,7 +322,9 @@ class DetClsPt:
         assert isinstance(img, Image.Image), "img must be a PIL.Image"
         img = img.convert("RGB")
         fontpath = get_chinese_font_path_random()
-        style = ImageFont.truetype(fontpath, 20)
+        if fontpath is None:
+            raise ValueError("Font path cannot be None")
+        style = ImageFont.truetype(str(fontpath), 20)
         draw = ImageDraw.Draw(img)  # 创建一个可以在图片上绘制的对象(相当于画布)
         for det in detections:
             box = det["box"]

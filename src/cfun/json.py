@@ -52,7 +52,7 @@ def jsonp2json(obj: str) -> dict:
         raise ValueError("No valid JSONP format found.")
 
 
-def recursive_parse_json(data: str | dict | list) -> dict | list:
+def recursive_parse_json(data: str | dict | list) -> dict | list | str:
     """递归解析json 字符串
 
     主要是有些时候json字符串中又包含了dict和list类型的字符串.

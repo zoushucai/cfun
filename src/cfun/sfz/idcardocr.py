@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
@@ -361,7 +361,7 @@ class IdCardOCRIdentify:
         )
         self.usemodel = usemodel
         try:
-            from paddleocr import PaddleOCR
+            from paddleocr import PaddleOCR  # type: ignore
         except ImportError:
             usemodel = "baiduonnx"
         if not ocr and not self.usemodel:
@@ -447,7 +447,7 @@ class IdCardOCRIdentify:
             return img[int(1.2 * y2) :, :]
         return img
 
-    def _crop_mask(self, img, cls, mask, cls_box=None, debug=True):
+    def _crop_mask(self, img, cls, mask, cls_box=None, debug=True) -> tuple[Any, Any]:
         """根据mask裁剪图片，使得图片只返回需要识别的部分"""
         x1, y1, x2, y2 = map(int, mask)
         h, w = img.shape[:2]
@@ -497,6 +497,8 @@ class IdCardOCRIdentify:
                 cv2.imwrite("img_sec1.jpg", img_sec1)
                 cv2.imwrite("img_sec2.jpg", img_sec2)
             return img_sec1, img_sec2
+        # 如果没有匹配的cls，返回两个None，保证返回类型一致
+        return None, None
 
     def _ocr_crop(self, img_sec1, img_sec2):
         """对裁剪后的图片进行OCR识别"""
@@ -742,8 +744,8 @@ class IDCardOCR:
 
     def __init__(
         self,
-        model: Optional[str] = None,
-        temp_dir: Optional[Union[str, Path]] = None,
+        model: str | Path,
+        temp_dir: str | Path | None = None,
     ):
         """
         初始化sfz处理器
@@ -767,7 +769,10 @@ class IDCardOCR:
     @staticmethod
     def _find_first(detections: list[dict], target_cls: list[int]) -> dict:
         """在检测结果中查找第一个匹配的目标"""
-        return next((d for d in detections if d["cls"] in target_cls), None)
+        for d in detections:
+            if d["cls"] in target_cls:
+                return d
+        raise ValueError("未找到匹配的目标")
 
     def process_image(
         self,
@@ -788,7 +793,7 @@ class IDCardOCR:
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
         # Step 1: 初次检测：定位卡片区域
-        det_results = self.det.detect(img_path)[0]
+        det_results = self.det.detect(img_path)
 
         card_side = self._find_first(det_results, [0, 1])
         card_symbol = self._find_first(det_results, [2, 3])
@@ -803,7 +808,7 @@ class IDCardOCR:
         cv2.imwrite(str(temp_img_path), cropped_img)
 
         # step 3: 旋转摆正, 检测裁剪图像并判断是否需旋转
-        second_det_results = self.det.detect(str(temp_img_path))[0]
+        second_det_results = self.det.detect(str(temp_img_path))
         # 小心坐标有负数和超出范围的值
         symbol = self._find_first(second_det_results, [2, 3])
 
@@ -818,7 +823,7 @@ class IDCardOCR:
         cv2.imwrite(str(final_img_path), aligned_img)
 
         ### Step 4: 利用旋转后的图像做最终检测并识别
-        final_dets = self.det.detect(str(final_img_path))[0]
+        final_dets = self.det.detect(str(final_img_path))
         card_side = self._find_first(final_dets, [0, 1])
         card_symbol = self._find_first(final_dets, [2, 3])
         if not card_side or not card_symbol:

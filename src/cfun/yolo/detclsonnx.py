@@ -11,7 +11,7 @@
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 from PIL import Image
@@ -31,10 +31,10 @@ class DetClsOnnx:
 
     def __init__(
         self,
-        det_model: Optional[str] = None,
-        cls_model: Optional[str] = None,
-        det_imgsz: int = 640,
-        cls_imgsz: int = 64,
+        det_model: None | str | Path = None,
+        cls_model: None | str | Path = None,
+        det_imgsz: int | tuple[int, int] | list[int] | None = (640, 640),
+        cls_imgsz: int | tuple[int, int] | list[int] | None = (64, 64),
     ):
         """初始化YOLO模型
 
@@ -100,7 +100,7 @@ class DetClsOnnx:
             from PIL import ImageDraw, ImageFont
             from cfun.yolo.detclsonnx import DetClsOnnx
 
-            yolo = DetClsPt()
+            yolo = DetClsOnnx()
             image_path = "assets/image_detect_01.png"
             results = yolo.predict(image_path)
             print(results)
