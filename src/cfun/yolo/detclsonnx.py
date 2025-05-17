@@ -147,7 +147,7 @@ class DetClsOnnx:
         det_results = self.det.detect(img)[0]
         results = []
         for _, item in enumerate(det_results):
-            box = item["box"]
+            box: list = item["box"]
             x1, y1, x2, y2 = map(int, box)
             cropped_img = img.crop((x1, y1, x2, y2))
             cls_results = self.cls.classify(cropped_img)[0]

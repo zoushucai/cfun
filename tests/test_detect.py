@@ -14,15 +14,15 @@ def test_detect():
     img_path3 = "assets/image_detect_03.png"
 
     # 单图像检测
-    result1 = det.detect(img_path1)
+    result1 = det.detect(img_path1)[0]
     print("-----单图像检测1-----")
     print(result1)
 
-    result2 = det.detect(img_path2)
+    result2 = det.detect(img_path2)[0]
     print("-----单图像检测2-----")
     print(result2)
 
-    result3 = det.detect(img_path3)
+    result3 = det.detect(img_path3)[0]
     print("-----单图像检测3-----")
     print(result3)
 
@@ -32,12 +32,12 @@ def test_detect():
     print(result_all)
     # 传入 cv2 读取的图像
     img_cv2 = cv2.imread(img_path1)
-    result_cv2 = det.detect(img_cv2)
+    result_cv2 = det.detect(img_cv2)[0]
     print("-----cv2读取的图像-----")
     print(result_cv2)
     # 传入 PIL.Image
     img_pil = Image.open(img_path1)
-    result_pil = det.detect(img_pil)
+    result_pil = det.detect(img_pil)[0]
     print("-----PIL读取的图像-----")
     print(result_pil)
 

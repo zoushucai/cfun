@@ -793,7 +793,7 @@ class IDCardOCR:
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 
         # Step 1: 初次检测：定位卡片区域
-        det_results = self.det.detect(img_path)
+        det_results = self.det.detect(img_path)[0]
 
         card_side = self._find_first(det_results, [0, 1])
         card_symbol = self._find_first(det_results, [2, 3])
@@ -808,7 +808,7 @@ class IDCardOCR:
         cv2.imwrite(str(temp_img_path), cropped_img)
 
         # step 3: 旋转摆正, 检测裁剪图像并判断是否需旋转
-        second_det_results = self.det.detect(str(temp_img_path))
+        second_det_results = self.det.detect(str(temp_img_path))[0]
         # 小心坐标有负数和超出范围的值
         symbol = self._find_first(second_det_results, [2, 3])
 
@@ -823,7 +823,7 @@ class IDCardOCR:
         cv2.imwrite(str(final_img_path), aligned_img)
 
         ### Step 4: 利用旋转后的图像做最终检测并识别
-        final_dets = self.det.detect(str(final_img_path))
+        final_dets = self.det.detect(str(final_img_path))[0]
         card_side = self._find_first(final_dets, [0, 1])
         card_symbol = self._find_first(final_dets, [2, 3])
         if not card_side or not card_symbol:

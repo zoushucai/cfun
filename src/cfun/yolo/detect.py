@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 import cv2
 import numpy as np
@@ -119,7 +119,7 @@ class Detector:
         self,
         source: Union[str, Path, Image.Image, np.ndarray],
         conf_thres: float = 0.65,
-    ) -> list[dict]:
+    ) -> list[dict[str, Union[int, float, list[float]]]]:
         """处理单张图像，返回检测结果"""
 
         img_tensor, img0, ratio, dw, dh = self._preprocess(source)
@@ -152,12 +152,13 @@ class Detector:
                     ],
                 }
             )
-
+        if not detections:
+            raise ValueError("No detections found in the image")
         return detections
 
     def detect(
         self, source: Union[str, Path, Image.Image, np.ndarray, Sequence]
-    ) -> list[dict]:
+    ) -> list[list[dict[str, Any]]]:
         """检测图像中的物体，支持多种输入类型和批量检测。
 
         Args:
@@ -184,15 +185,15 @@ class Detector:
 
 
             # 单图像检测
-            result1 = det.detect(img_path1)
+            result1 = det.detect(img_path1)[0]
             print("-----单图像检测1-----")
             print(result1)
 
-            result2 = det.detect(img_path2)
+            result2 = det.detect(img_path2)[0]
             print("-----单图像检测2-----")
             print(result2)
 
-            result3 = det.detect(img_path3)
+            result3 = det.detect(img_path3)[0]
             print("-----单图像检测3-----")
             print(result3)
 
@@ -202,12 +203,12 @@ class Detector:
             print(result_all)
             # 传入 cv2 读取的图像
             img_cv2 = cv2.imread(img_path1)
-            result_cv2 = det.detect(img_cv2)
+            result_cv2 = det.detect(img_cv2)[0]
             print("-----cv2读取的图像-----")
             print(result_cv2)
             # 传入 PIL.Image
             img_pil = Image.open(img_path1)
-            result_pil = det.detect(img_pil)
+            result_pil = det.detect(img_pil)[0]
             print("-----PIL读取的图像-----")
             print(result_pil)
 
@@ -226,13 +227,16 @@ class Detector:
         else:
             img_list = source
         results = [self._detect_single(img) for img in img_list]
-
-        return results  # type: ignore
+        if not results:
+            raise ValueError("No detections found in the image(s)")
+        # 过滤掉空列表
+        results = [result for result in results if result]
+        return results
 
     def draw_results(
         self,
         img: str | Path | Image.Image | np.ndarray,
-        detections: list[dict] | dict,
+        detections: list[dict[Any, Any]] | dict,
         save_path: Union[str, Path],
     ) -> None:
         """在图像上绘制检测结果
@@ -290,15 +294,15 @@ if __name__ == "__main__":
     img_path3 = "assets/image_detect_03.png"
 
     # 单图像检测
-    result1 = det.detect(img_path1)
+    result1 = det.detect(img_path1)[0]
     print("-----单图像检测1-----")
     print(result1)
 
-    result2 = det.detect(img_path2)
+    result2 = det.detect(img_path2)[0]
     print("-----单图像检测2-----")
     print(result2)
 
-    result3 = det.detect(img_path3)
+    result3 = det.detect(img_path3)[0]
     print("-----单图像检测3-----")
     print(result3)
 
@@ -308,17 +312,17 @@ if __name__ == "__main__":
     print(result_all)
     # 传入 cv2 读取的图像
     img_cv2 = cv2.imread(img_path1)
-    result_cv2 = det.detect(img_cv2)
+    result_cv2 = det.detect(img_cv2)[0]
     print("-----cv2读取的图像-----")
     print(result_cv2)
     # 传入 PIL.Image
     img_pil = Image.open(img_path1)
-    result_pil = det.detect(img_pil)
+    result_pil = det.detect(img_pil)[0]
     print("-----PIL读取的图像-----")
     print(result_pil)
 
     # 混合传入
-    result_mixed = det.detect([img_path1, img_cv2, img_pil])
+    result_mixed = det.detect([img_path1, img_cv2, img_pil])[0]
     print("-----混合传入-----")
     print(result_mixed)
 
