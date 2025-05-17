@@ -67,7 +67,7 @@ class Phrase:
             corrector (str): 纠错器类型, 可选值为 "charsimilar" 或 "bert", 默认为 "charsimilar"
         """
         self.userdb = self._load_dataframe(userdb) if userdb else None
-        self.basedb = self._load_dataframe(self.basedb_path)
+        self.basedb = self._load_dataframe(Path(str(self.basedb_path)))
         self.db = self._merge_databases()
 
         if corrector in ["bert", "charsimilar"]:
@@ -260,9 +260,9 @@ class Phrase:
         :return: (是否有错误, 错误的字符, 正确的字符)
         """
         if not self.corrector_type:
-            return False, None, None
+            return False, "", ""
         # 计算相似度,self.corrector的是类对象，因此需要调用函数
-        corrected_list = self.corrector.correct_batch(candidates)
+        corrected_list = self.corrector.correct_batch(candidates)  # type: ignore
 
         # 提取并统计错误组合
         ie_list = [
@@ -273,8 +273,7 @@ class Phrase:
         ]
         # 如果没有错误组合，返回 False
         if not ie_list:
-            return False, None, None
-
+            return False, "", ""
         # 找出最常见的第一个元素
         first_elements_count = Counter(e for e, _ in ie_list)
         most_common_first = first_elements_count.most_common(1)[0][0]
@@ -291,7 +290,7 @@ class Phrase:
         if final_ie_list and all(x == final_ie_list[0] for x in final_ie_list):
             return True, final_ie_list[0][0], final_ie_list[0][1]
 
-        return False, None, None  # 如果没有找到符合条件的组合，返回 False
+        return False, "", ""  # 如果没有找到符合条件的组合，返回 False
 
     def _best_char_pairs(
         self, errors: str, rights: str
@@ -353,7 +352,7 @@ class Phrase:
         # 计算两个字符串的相似度， 先找出不同的字符，然后计算相似度
         # cc = []  # 存储错误的字符和正确的字符, 以及候选字符串
 
-        best_word = None
+        best_word = ""
         best_score = 0
         for _, row in match_df.iterrows():
             word = row["word"]
