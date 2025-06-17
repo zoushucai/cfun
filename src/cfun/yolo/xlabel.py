@@ -68,7 +68,7 @@ class XLabel:
                 fixedtimestamp=True,
                 namereplace={"name": "description"},
             )
-            # 建议json的名字和图片的名字一致（这里是为了测试）
+            # 建议json的名字和图片的名字一致(这里是为了测试)
             xl.save_template("output/template1.json")  # 输出json文件
 
             #### 旋转矩形的例子
@@ -280,3 +280,12 @@ class XLabel:
         template_data = self._generate_template(version=version)
         with open(str(save_path), "w", encoding="utf-8") as f:
             json.dump(template_data, f, indent=2, ensure_ascii=False)
+
+    def to_json(self, save_path: str | Path, version="2.5.4") -> None:
+        """保存模板数据到文件(同 save_template 方法)
+
+        Args:
+            save_path (str | Path): 保存的文件路径
+            version (str): 模板版本, 默认是2.5.4
+        """
+        self.save_template(save_path, version=version)

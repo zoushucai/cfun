@@ -66,8 +66,8 @@ def splitdata(
         ```
 
     Args:
-        imgpath (str | Path): 原始图片路径的根目录 （这个目录下包含了要处理的图片）
-        txtpath (str | Path): 原始标签路径的根目录 （txt文件, 图片文件和txt文件的stem要一样,没有重复样本且数量也要一致,否则可能报错）
+        imgpath (str | Path): 原始图片路径的根目录 (这个目录下包含了要处理的图片)
+        txtpath (str | Path): 原始标签路径的根目录 (txt文件, 图片文件和txt文件的stem要一样,没有重复样本且数量也要一致,否则可能报错)
         new_imgpath (str | Path): 新的图片路径
         new_txtpath (str | Path): 新的标签路径
         val_size (float, optional): 验证集所占比例. Defaults to 0.1.

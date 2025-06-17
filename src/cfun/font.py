@@ -95,6 +95,57 @@ def get_chinese_font_paths() -> Dict[str, object]:
     }
 
 
+def get_fixed_fonts(chinese="song", english="arial") -> Dict[str, Optional[Path]]:
+    """
+    获取固定的中英文字体路径，
+    根据系统平台自动选择合适的字体路径。
+    Args:
+        chinese (str): 中文字体关键字, 默认是 "song" (包含 song 的字体, 不区分大小写)
+        english (str): 英文字体关键字, 默认是 "arial" (包含 arial 的字体, 不区分大小写)
+
+    Returns:
+        Dict[str, Optional[Path]]: 包含中文和英文字体路径的字典
+            {
+                "chinese": Path对象或None,
+                "english": Path对象或None
+            }
+
+    Example:
+        ```python
+        from cfun.font import get_fixed_fonts
+        fonts = get_fixed_fonts()
+        print(fonts["chinese"])  # 输出中文字体路径
+        print(fonts["english"])  # 输出英文字体路径
+        ```
+    """
+    system = platform.system().lower()
+
+    chinese_keywords = [chinese]
+    english_keywords = [english]
+
+    # 根据平台获取字体路径列表
+    if system == "windows":
+        chinese_font = _windows_font_paths(chinese_keywords)
+        english_font = _windows_font_paths(english_keywords)
+    elif system == "darwin":
+        chinese_font = _macos_font_paths(chinese_keywords)
+        english_font = _macos_font_paths(english_keywords)
+    elif system == "linux":
+        chinese_font = _linux_font_paths(chinese_keywords)
+        english_font = _linux_font_paths(english_keywords)
+    else:
+        return {
+            "chinese": None,
+            "english": None,
+        }
+    english_font.sort(key=lambda p: Path(p).stem.split()[-1])  # 按照字体名称排序
+    chinese_font.sort(key=lambda p: Path(p).stem.split()[-1])  # 按照字体名称排序
+    return {
+        "chinese": Path(chinese_font[0]) if chinese_font else None,
+        "english": Path(english_font[0]) if english_font else None,
+    }
+
+
 def has_fc_list() -> bool:
     """判断是否可以使用 fc-list 命令"""
     try:
@@ -150,6 +201,7 @@ def _macos_font_paths(keywords: List[str]) -> List[str]:
     """macOS 下从常见字体目录中查找含有中文关键词的字体"""
     paths = []
     font_dirs = [
+        "/System/Library/Fonts/Supplemental",
         "/System/Library/Fonts",
         "/Library/Fonts",
         os.path.expanduser("~/Library/Fonts"),
@@ -196,3 +248,7 @@ if __name__ == "__main__":
     print("随机中文字体路径:")
     fontpath = get_chinese_font_path_random()
     print(type(fontpath), fontpath)
+
+    fixed_fonts = get_fixed_fonts()
+    print("固定中文字体:", fixed_fonts["chinese"])
+    print("固定英文字体:", fixed_fonts["english"])
