@@ -1,9 +1,9 @@
 """
-主要是根据 yolo11的目标检测和分类模型，对图片进行检测和分类，返回一个list[dict]，每个元素是一个字典，包含名称和坐标, 依赖 ultralytics
+主要是根据 yolo11的目标检测和分类模型,对图片进行检测和分类,返回一个list[dict],每个元素是一个字典,包含名称和坐标, 依赖 ultralytics
 
-1. 首先通过检测模型，得到检测框的坐标
-2. 然后根据检测框的坐标，裁剪出图片
-3. 然后通过分类模型，对裁剪出来的图片进行分类
+1. 首先通过检测模型,得到检测框的坐标
+2. 然后根据检测框的坐标,裁剪出图片
+3. 然后通过分类模型,对裁剪出来的图片进行分类
 4. 最后将分类结果和坐标一起返回, 返回一个list[dict]
 
 
@@ -23,7 +23,7 @@ from .base import fillter_top5, jaccard_similarity, load_image
 
 
 class DetClsPt:
-    """YOLO模型类，用于目标检测和分类, 传入的是pt模型， 只适用于一张图上同时有检测和分类的情况
+    """YOLO模型类,用于目标检测和分类, 传入的是pt模型, 只适用于一张图上同时有检测和分类的情况
 
     Attributes:
         det (YOLO): YOLO检测模型
@@ -40,8 +40,8 @@ class DetClsPt:
         """初始化YOLO模型
 
         Args:
-            det_model (one | str | Path): 检测模型路径，默认为None，使用默认模型
-            cls_model (one | str | Path): 分类模型路径，默认为None，使用默认模型
+            det_model (one | str | Path): 检测模型路径,默认为None,使用默认模型
+            cls_model (one | str | Path): 分类模型路径,默认为None,使用默认模型
             det_imgsz (int | tuple[int, int] | list[int,int]): 检测模型的输入大小
             cls_imgsz (int | tuple[int, int] | list[int, int]): 分类模型的输入大小
 
@@ -72,7 +72,7 @@ class DetClsPt:
     def _load_image(
         self, source: Union[str, Path, Image.Image, np.ndarray]
     ) -> Image.Image:
-        """加载图像，支持路径、PIL.Image 或 OpenCV 图像（ndarray）
+        """加载图像,支持路径、PIL.Image 或 OpenCV 图像（ndarray）
 
         Args:
             source (Union[str, Path, Image.Image, np.ndarray]): 图像路径或图像对象
@@ -98,15 +98,15 @@ class DetClsPt:
         return img0
 
     def predict(self, source: Union[str, Path, Image.Image, np.ndarray]) -> list[dict]:
-        """根据输入的图片路径进行检测和分类，并返回结果 (单个图片)
+        """根据输入的图片路径进行检测和分类,并返回结果 (单个图片)
 
         Args:
             source (Union[str, Path, Image.Image, np.ndarray]): 输入的图片路径或图片对象
 
         Returns:
-            list[dict]: 检测和分类结果，包含名称和坐标等
+            list[dict]: 检测和分类结果,包含名称和坐标等
 
-                - `box` (list[float]): 检测框的坐标，box 格式。
+                - `box` (list[float]): 检测框的坐标,box 格式。
                 - `conf` (float): 检测框的置信度。
                 - `cls` (int): 检测框的类别索引。
                 - `name` (str): 检测框的名称。
@@ -127,18 +127,18 @@ class DetClsPt:
             results = yolo.predict(image_path)
             print(results)
             '''
-            #输出类似: (每一个框都是一个字典，包含名称和坐标等相关信息
+            #输出类似: (每一个框都是一个字典,包含名称和坐标等相关信息
                 [
                     {
-                        ############### 下面是利用检测模型得到的结果，与检测框有关   #####################
+                        ############### 下面是利用检测模型得到的结果,与检测框有关   #####################
                         "box": [79.5, 79.0],    # 检测框的坐标 (box格式)
                         "conf": 0.95, # 检测框的置信度
                         "cls": 0, # 检测框的索引
                         "name": "target",  # 检测框的名称
                         "points": [[79.5, 79.0], [79.5, 79.0], [79.5, 79.0], [79.5, 79.0]], # 检测框的坐标( polygon 格式)
-                        #################### 下面是利用分类模型得到的结果，与分类框有关   #####################
+                        #################### 下面是利用分类模型得到的结果,与分类框有关   #####################
                         "top1name": "好",  # name即对应的分类名称
-                        "top1conf": 0.95， # Confidence score
+                        "top1conf": 0.95, # Confidence score
                         "top1": 0, # top1的索引
                         "top5name": ["好", "坏", "一般", "未知", "其他"], # top5的名称
                         "top5conf": [0.55, 0.1, 0.1, 0.1, 0.1], # top5的置信度
@@ -256,7 +256,7 @@ class DetClsPt:
     ) -> float:
         """计算两个图片的相似度, 采用 Jaccard 相似度
 
-        原理: 首先计算两个图片的 top5 类别，类别的概率应该大于阈值，然后计算这两个集合的 Jaccard 相似度。
+        原理: 首先计算两个图片的 top5 类别,类别的概率应该大于阈值,然后计算这两个集合的 Jaccard 相似度。
 
         Args:
             img_path1 (str | Path): 图片路径1
@@ -279,7 +279,7 @@ class DetClsPt:
 
         data1 = self._extract_classify_result(result1)
         data2 = self._extract_classify_result(result2)
-        # 对前五个的概率 进行筛选，至少大于 threshold
+        # 对前五个的概率 进行筛选,至少大于 threshold
         # 根据 top5conf 过滤
         result1 = fillter_top5(data1, threshold)
         result2 = fillter_top5(data2, threshold)
@@ -360,7 +360,7 @@ if __name__ == "__main__":
     # font_style = ImageFont.truetype(cdata.FONT_SIMSUN, 20)  # 设置字体和大小
     # img = Image.open(image_path)  # 打开图片
     # draw = ImageDraw.Draw(img)  # 创建一个可以在图片上绘制的对象(相当于画布)
-    # # 遍历每个框，画框
+    # # 遍历每个框,画框
     # for _idx, bbox in enumerate(results):
     #     points = bbox["points"]
     #     x1, y1 = points[0]

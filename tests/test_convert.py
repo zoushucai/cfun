@@ -22,7 +22,7 @@ def test_box():
         {"points": [[50, 60], [70, 60], [70, 80], [50, 80]], "cls": "dog", "conf": 0.8},
     ]
     assert polygons == out1, f"Expected {out1}, but got {polygons}"
-    # 注意: 这里的 box 表示是一个字典，包含了 box 的坐标、类别和置信度
+    # 注意: 这里的 box 表示是一个字典,包含了 box 的坐标、类别和置信度
 
 
 def test_polygon():

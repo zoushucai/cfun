@@ -2,9 +2,9 @@
 
 主要提供两个功能
 
-1. 根据短语，返回正确的语序
+1. 根据短语,返回正确的语序
 
-2. 根据指定的字符串顺序，把数据进行排序
+2. 根据指定的字符串顺序,把数据进行排序
 
 
 原理：
@@ -21,9 +21,9 @@
 
 3. 如果没有找到, 则可能是传递的 word 书写错误, 尝试利用正则进行匹配（模糊匹配）
 
-    3.1 从匹配到的结果中，选出最有可能的组合
+    3.1 从匹配到的结果中,选出最有可能的组合
 
-    3.2 如果匹配到的结果只有一个，则直接返回
+    3.2 如果匹配到的结果只有一个,则直接返回
 
 4. 实在没有,则返回随机组合
 
@@ -63,7 +63,7 @@ class Phrase:
         """初始化类
 
         Args:
-            userdb (str): 用户自定义的数据库路径, 如果不传入，则使用默认的数据库，上传了则会把用户的数据库和默认的数据库进行合并(用户优先)
+            userdb (str): 用户自定义的数据库路径, 如果不传入,则使用默认的数据库,上传了则会把用户的数据库和默认的数据库进行合并(用户优先)
             corrector (str): 纠错器类型, 可选值为 "charsimilar" 或 "bert", 默认为 "charsimilar"
         """
         self.userdb = self._load_dataframe(userdb) if userdb else None
@@ -143,7 +143,7 @@ class Phrase:
         # 对每个组合生成对应的正则表达式
 
         for indices in indices_combinations:
-            # 创建一个列表，把原字符串变为可变的列表
+            # 创建一个列表,把原字符串变为可变的列表
             # 用 '.' 替换这些位置的字符
             temp = list(s)
             for index in indices:
@@ -157,7 +157,7 @@ class Phrase:
     def _get_ordinal_string(fragment, target) -> str:
         """
         根据findstring中字符的顺序重新排列phrase中的字符
-        如果findstring中有的字符在phrase中没有出现，则用phrase中剩余的字符随机替换
+        如果findstring中有的字符在phrase中没有出现,则用phrase中剩余的字符随机替换
         :param fragment: 原始字符串（目标顺序）   eg: 收下留情
         :param target: 匹配到的字符串（目标顺序） eg:  手下留情
         :return: 重排后的字符串
@@ -169,7 +169,7 @@ class Phrase:
         # 利用原始的字符串进行组合, 因为我们找的的字符串和 fragment 不一定相同
         p_chars = list(fragment)
         f_chars = list(target)
-        # 如果 fragment 中有重复字符（例如 ["a","a","b","c"]），使用集合会丢失这个信息,因此使用列表推导式
+        # 如果 fragment 中有重复字符（例如 ["a","a","b","c"]）,使用集合会丢失这个信息,因此使用列表推导式
         residual = [c for c in p_chars if c not in f_chars]
         random.shuffle(residual)  # 预先打乱剩余字符以提高随机性
         # 构建结果字符串
@@ -257,7 +257,7 @@ class Phrase:
         """
         if not self.corrector_type:
             return False, "", ""
-        # 计算相似度,self.corrector的是类对象，因此需要调用函数
+        # 计算相似度,self.corrector的是类对象,因此需要调用函数
         corrected_list = self.corrector.correct_batch(candidates)  # type: ignore
 
         # 提取并统计错误组合
@@ -267,7 +267,7 @@ class Phrase:
             if "errors" in item and len(item["errors"]) == 1
             for e, r, _ in item["errors"]
         ]
-        # 如果没有错误组合，返回 False
+        # 如果没有错误组合,返回 False
         if not ie_list:
             return False, "", ""
         # 找出最常见的第一个元素
@@ -286,15 +286,15 @@ class Phrase:
         if final_ie_list and all(x == final_ie_list[0] for x in final_ie_list):
             return True, final_ie_list[0][0], final_ie_list[0][1]
 
-        return False, "", ""  # 如果没有找到符合条件的组合，返回 False
+        return False, "", ""  # 如果没有找到符合条件的组合,返回 False
 
     def _best_char_pairs(
         self, errors: str, rights: str
     ) -> list[tuple[str, str, float]]:
         """获取最相似的字符对,
 
-        依次对errors中的每个字符与rights中的每个字符进行比较，计算相似度，返回最相似的字符对, 返回的长度是 errors 的长度
-        因为有些字是重复的，所以这里进行完全匹配。
+        依次对errors中的每个字符与rights中的每个字符进行比较,计算相似度,返回最相似的字符对, 返回的长度是 errors 的长度
+        因为有些字是重复的,所以这里进行完全匹配。
 
         Args:
             errors (str): 错误的字符
@@ -345,7 +345,7 @@ class Phrase:
         # from char_similar_z import CharSimilarity
 
         # "all"(字形:拼音:字义=1:1:1)  # "w2v"(字形:字义=1:1)  # "pinyin"(字形:拼音=1:1)  # "shape"(字形=1)
-        # 计算两个字符串的相似度， 先找出不同的字符，然后计算相似度
+        # 计算两个字符串的相似度, 先找出不同的字符,然后计算相似度
         # cc = []  # 存储错误的字符和正确的字符, 以及候选字符串
 
         best_word = ""
@@ -367,7 +367,7 @@ class Phrase:
 
         Args:
             fragment (str): 传入的字符串
-            maxn (int): 用于模糊匹配的字符数量, 默认为 1，建议设置为 1 或 2比较低的值，这样速度快很多
+            maxn (int): 用于模糊匹配的字符数量, 默认为 1,建议设置为 1 或 2比较低的值,这样速度快很多
 
         Returns:
             tuple[str, str, bool]: (原始组合, 数据库匹配组合, 是否完全匹配)
@@ -401,29 +401,29 @@ class Phrase:
         # 如果没有找到, 则可能是传递的 fragment 中存在错别字, 尝试利用正则进行匹配（模糊匹配）
         if matched == "":
             matched, match_df = self._best_match_from_regex(combinations, n=maxn)
-            # 如果 match_df 长度为空或为1，则直接返回
+            # 如果 match_df 长度为空或为1,则直接返回
             if match_df.empty:
                 matched = ""
             elif len(match_df) == 1:
-                # 说明匹配到了，直接返回
+                # 说明匹配到了,直接返回
                 pass
             else:
                 # print(f"匹配到多个结果: {match_df}")
-                # 对模糊匹配的结果进行处理，找出最合理的字符串
+                # 对模糊匹配的结果进行处理,找出最合理的字符串
                 candidates = [
                     self._get_ordinal_string(fragment, i) for i in match_df["word"]
                 ]
                 if self.corrector_type == "bert":
-                    # 这里的思路： 先把匹配到的字符串与原始字符串进行顺序还原，然后让bert纠错器进行纠错，看是否有错误，统计错误多的，
+                    # 这里的思路： 先把匹配到的字符串与原始字符串进行顺序还原,然后让bert纠错器进行纠错,看是否有错误,统计错误多的,
                     has_err, wrong, right = self._bertcorrector(candidates)
-                    # 如果有错误的，则改成正确的
+                    # 如果有错误的,则改成正确的
                     if has_err:
                         raw = candidates[0].replace(wrong, right)
                         combinations2 = self._generate_permutations(raw)
                         corrected = self._best_match_from_db(combinations2)
                         matched = corrected if corrected else matched
                 elif self.corrector_type == "charsimilar":
-                    # 这里的思路： 直接对模糊匹配的结果进行处理，找出所有错误，正确的字符组合，然后计算相似度，返回最相似的字符串
+                    # 这里的思路： 直接对模糊匹配的结果进行处理,找出所有错误,正确的字符组合,然后计算相似度,返回最相似的字符串
                     res = self._charsimilarcorrector(match_df, fragment)
                     matched = res if res else matched
 
@@ -443,11 +443,11 @@ class Phrase:
 
         要求输入参数 data 中的每个元素都必须是包含指定的key字段(默认是 "name"):
 
-        - 若启用检查（check=True）且 data 的长度小于 cw 的长度，则会抛出异常。
-        - 若字符无法精确匹配，则会计算相似度进行最优匹配。
+        - 若启用检查（check=True）且 data 的长度小于 cw 的长度,则会抛出异常。
+        - 若字符无法精确匹配,则会计算相似度进行最优匹配。
 
         Args:
-            data (list[dict]): 要排序的字典列表，且每个字典中必须包含指定的 key 字段（默认是 "name"）。
+            data (list[dict]): 要排序的字典列表,且每个字典中必须包含指定的 key 字段（默认是 "name"）。
             cw (str): 指定的字符顺序。
             key (str, optional): 要用于匹配的字段名。默认为 "name"。
             check (bool, optional): 是否启用长度检查和严格匹配。默认为 True。
@@ -457,7 +457,7 @@ class Phrase:
 
         Raises:
             AssertionError: 如果参数类型或结构不符合要求。
-            ValueError: 在 check 为 True 时，若无法找到匹配字符，则抛出。
+            ValueError: 在 check 为 True 时,若无法找到匹配字符,则抛出。
 
         Example:
             ```python
@@ -477,22 +477,22 @@ class Phrase:
         assert all(isinstance(item, dict) and key in item for item in data), (
             "data中的每个元素必须是字典类型,且必须包含name字段"
         )
-        assert isinstance(cw, str) and len(cw) > 0, "cw必须是str类型，且不能为空"
+        assert isinstance(cw, str) and len(cw) > 0, "cw必须是str类型,且不能为空"
         if check:
             assert len(data) >= len(cw), "参数cw的长度不能大于data的长度"
 
-        remaining = deepcopy(data)  # 深拷贝，避免修改原数据
+        remaining = deepcopy(data)  # 深拷贝,避免修改原数据
         result = []
 
         for ch in cw:
             # 尝试精确匹配 （计算快）
-            ### next表示从生成器中取出第一个匹配项，没有匹配到则返回None
+            ### next表示从生成器中取出第一个匹配项,没有匹配到则返回None
             exact_match = next((item for item in remaining if item[key] == ch), None)
             if exact_match:
                 result.append(exact_match)
                 remaining.remove(exact_match)
                 continue
-            # 尝试相似度匹配（直接使用相似度计算，因为如果两个字符完全相同，则相似度为1，慢一些）
+            # 尝试相似度匹配（直接使用相似度计算,因为如果两个字符完全相同,则相似度为1,慢一些）
             best_match = None
             best_score = 0
             for item in remaining:

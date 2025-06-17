@@ -58,10 +58,10 @@ def recursive_parse_json(data: str | dict | list) -> dict | list | str:
     主要是有些时候json字符串中又包含了dict和list类型的字符串.
 
     Args:
-        data (str, dict, list): 输入数据，可以是字符串、字典或列表
+        data (str, dict, list): 输入数据,可以是字符串、字典或列表
 
     Returns:
-        dict, list: 解析后的数据，字符串保持不变，字典和列表递归解析。
+        dict, list: 解析后的数据,字符串保持不变,字典和列表递归解析。
 
     Example:
         ```python

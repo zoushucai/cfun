@@ -55,19 +55,19 @@ def splitdata(
     test_size: float = 0.1,
     postfix: str = ".png",
 ) -> None:
-    """将数据集拆分为训练集、val集和测试集，并相应地复制文件。(主要用于yolo目标检测数据的划分)
+    """将数据集拆分为训练集、val集和测试集,并相应地复制文件。(主要用于yolo目标检测数据的划分)
 
-    主要用于yolo目标检测数据的划分，分成训练集、验证集和测试集。
+    主要用于yolo目标检测数据的划分,分成训练集、验证集和测试集。
 
     !!! note
-        对于分类数据， 官方提供了另外的函数可以直接划分
+        对于分类数据, 官方提供了另外的函数可以直接划分
         ```python
         from ultralytics.data.split import split_classify_dataset
         ```
 
     Args:
         imgpath (str | Path): 原始图片路径的根目录 （这个目录下包含了要处理的图片）
-        txtpath (str | Path): 原始标签路径的根目录 （txt文件， 图片文件和txt文件的stem要一样，没有重复样本且数量也要一致，否则可能报错）
+        txtpath (str | Path): 原始标签路径的根目录 （txt文件, 图片文件和txt文件的stem要一样,没有重复样本且数量也要一致,否则可能报错）
         new_imgpath (str | Path): 新的图片路径
         new_txtpath (str | Path): 新的标签路径
         val_size (float, optional): 验证集所占比例. Defaults to 0.1.
@@ -76,10 +76,10 @@ def splitdata(
 
 
     Raises:
-        AssertionError: 如果原始图片路径或标签路径不存在，抛出异常。
-        AssertionError: 如果txt文件和图片文件的stem不一致 或者数量不一致，抛出异常。
-        ValueError: 如果val_size和test_size不在0到1之间，抛出异常。
-        ValueError: 如果val_size + test_size >= 1，抛出异常。
+        AssertionError: 如果原始图片路径或标签路径不存在,抛出异常。
+        AssertionError: 如果txt文件和图片文件的stem不一致 或者数量不一致,抛出异常。
+        ValueError: 如果val_size和test_size不在0到1之间,抛出异常。
+        ValueError: 如果val_size + test_size >= 1,抛出异常。
 
     Example:
         ```python
@@ -152,12 +152,12 @@ def splitdata(
 def check_image_and_json(
     json_dir: Path | str, label_key: str, image_dir: Path | str, image_suffix: str
 ) -> dict:
-    """检查json_dir下的json文件 和 image_dir下的图片文件是否一致，并返回类别映射文件
+    """检查json_dir下的json文件 和 image_dir下的图片文件是否一致,并返回类别映射文件
 
     !!! note
         检查三个点:
 
-        - json_dir下的json文件, image_dir下的图片文件, 以及json文件中的imagePath字段，这三者的 stem 数量和名字要相同，不能重复.
+        - json_dir下的json文件, image_dir下的图片文件, 以及json文件中的imagePath字段,这三者的 stem 数量和名字要相同,不能重复.
 
     Args:
         json_dir (Path | str): JSON 标注文件所在目录
@@ -166,13 +166,13 @@ def check_image_and_json(
         image_suffix (str): 图像文件后缀名,
 
     Raises:
-        AssertionError: 如果json_dir或image_dir不是有效的目录，抛出异常。
-        AssertionError: 如果json_dir下的json文件数量和image_dir下的图片文件数量不一致，抛出异常。
-        AssertionError: 如果json文件的stem和图片文件的stem不一致，抛出异常。
-        AssertionError: 如果json文件中的imagePath字段和图片文件名不一致，抛出异常。
+        AssertionError: 如果json_dir或image_dir不是有效的目录,抛出异常。
+        AssertionError: 如果json_dir下的json文件数量和image_dir下的图片文件数量不一致,抛出异常。
+        AssertionError: 如果json文件的stem和图片文件的stem不一致,抛出异常。
+        AssertionError: 如果json文件中的imagePath字段和图片文件名不一致,抛出异常。
 
     Returns:
-        dict: 类别映射文件，格式为 `{index: class_name}`, 这里的index是从0开始的， class_name是类别名称，对应label_key
+        dict: 类别映射文件,格式为 `{index: class_name}`, 这里的index是从0开始的, class_name是类别名称,对应label_key
 
     Example:
         ```python
@@ -195,20 +195,20 @@ def check_image_and_json(
     ##3 1. 检查json_dir下的json文件 和 image_dir下的图片 数量是否一致
     json_files = sorted([f for f in json_dir.glob("*.json") if f.is_file()])
     image_files = sorted([f for f in image_dir.glob(f"*{image_suffix}") if f.is_file()])
-    # 由于后缀名大写和小写的问题，有些时候要小心
+    # 由于后缀名大写和小写的问题,有些时候要小心
 
     assert len(json_files) == len(image_files), (
         f"检查不通过, json_dir下的json文件数量和image_dir下的图片文件数量不一致,json_files数量: {len(json_files)}, image_files数量: {len(image_files)}"
     )
 
-    ### 2. 提取json文件的stem和图片文件的stem，检查是否一致, 且不能重复
+    ### 2. 提取json文件的stem和图片文件的stem,检查是否一致, 且不能重复
     json_stems = {f.stem for f in json_files}
     image_stems = {f.stem for f in image_files}
     assert json_stems == image_stems, (
         f"检查不通过, json文件的stem和图片文件的stem不一致, json_stems数量: {len(json_stems)}, image_stems数量: {len(image_stems)}"
     )
 
-    ### 3. 读取json文件并提取其中的imagePath字段，然后提取name, 应该和图片文件一致
+    ### 3. 读取json文件并提取其中的imagePath字段,然后提取name, 应该和图片文件一致
     image_names = {f.name for f in image_files}
     labels = set()
     image_names_in_json = set()
@@ -227,6 +227,16 @@ def check_image_and_json(
         else:
             raise ValueError(f"Missing label key '{label_key}' in {jf}")
 
+    diffset1 = image_names_in_json - image_names
+    diffset2 = image_names - image_names_in_json
+    if len(diffset1) > 0:
+        raise AssertionError(
+            f"检查不通过, json文件中的imagePath字段包含了不存在的图片文件名(前 5 个, 总数: {len(diffset1)}):\n{list(diffset1)[:5]}"
+        )
+    if len(diffset2) > 0:
+        raise AssertionError(
+            f"检查不通过, 图片文件名包含了json文件中的imagePath字段不存在的图片文件名(前 5 个, 总数: {len(diffset2)}):\n{list(diffset2)[:5]}"
+        )
     assert image_names_in_json == image_names, (
         f"检查不通过, json文件中的imagePath字段和图片文件名不一致, json内部的imagePath数量: {len(image_names_in_json)}, image_names数量: {len(image_names)}"
     )
@@ -236,11 +246,11 @@ def check_image_and_json(
 
 
 def _mkcurrent_temp_dir(base_dir: str) -> Path:
-    """创建一个唯一的临时目录，避免与已存在的目录冲突"""
+    """创建一个唯一的临时目录,避免与已存在的目录冲突"""
     base = Path(base_dir)
     for i in range(10):  # 避免死循环
         candidate = base if i == 0 else Path(f"{base_dir}_{i}")
-        # 如果这个目录为空目录，则直接返回这个目录
+        # 如果这个目录为空目录,则直接返回这个目录
         if candidate.exists() and candidate.is_dir() and not any(candidate.iterdir()):
             return candidate
 
@@ -253,9 +263,9 @@ def _mkcurrent_temp_dir(base_dir: str) -> Path:
 def json_to_yolo_detect_data(
     json_dir: Path | str, label_key: str, image_dir: Path | str, image_suffix: str
 ) -> None:
-    """将json数据直接转为yolo训练数据集，且已划分为训练集、验证集和测试集。主要用于yolo目标检测数据的划分(一步到位版本)
+    """将json数据直接转为yolo训练数据集,且已划分为训练集、验证集和测试集。主要用于yolo目标检测数据的划分(一步到位版本)
 
-    会在当且文件夹下创建一个imgs_split的文件夹，里面包含了train、val和test三个文件夹，分别对应训练集、验证集和测试集。
+    会在当且文件夹下创建一个imgs_split的文件夹,里面包含了train、val和test三个文件夹,分别对应训练集、验证集和测试集。
 
 
     Args:
@@ -286,7 +296,7 @@ def json_to_yolo_detect_data(
         image_dir=image_dir,
         image_suffix=image_suffix,
     )
-    print("通过检查，类别映射文件: ")
+    print("通过检查,类别映射文件: ")
     pprint(class_mapping)
     json_to_yolo_txt(
         json_dir=json_dir,
@@ -310,6 +320,10 @@ def json_to_yolo_detect_data(
         test_size=0.1,
         postfix=image_suffix,
     )
+    # 把 class_mapping 保存到新的目录下
+    with open(outputdir / "class_mapping.txt", "w", encoding="utf-8") as f:
+        for index, class_name in class_mapping.items():
+            f.write(f"{index}: {class_name}\n")
     # 删除临时目录
     shutil.rmtree(temp_dir)
 

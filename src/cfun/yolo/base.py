@@ -16,7 +16,7 @@ def extract_info_from_onnx(onnx_path, key: str) -> Union[str, list, dict]:
         key (str): 要提取的信息的键
 
     Returns:
-        Union[str, list, dict]: 提取的信息，可以是字符串、列表或字典
+        Union[str, list, dict]: 提取的信息,可以是字符串、列表或字典
     """
     model = onnx.load(onnx_path)
     metadata = {p.key: p.value for p in model.metadata_props}
@@ -27,9 +27,9 @@ def extract_info_from_onnx(onnx_path, key: str) -> Union[str, list, dict]:
 
 
 def load_image(source: Union[str, Path, Image.Image, np.ndarray]) -> Image.Image:
-    """加载图像，支持路径、PIL.Image 或 OpenCV 图像（ndarray）,
+    """加载图像,支持路径、PIL.Image 或 OpenCV 图像（ndarray）,
 
-    希望支持各种图片格式，最终转为 RGB 格式的 PIL.Image 对象， 只对单个图片进行处理
+    希望支持各种图片格式,最终转为 RGB 格式的 PIL.Image 对象, 只对单个图片进行处理
 
     Args:
         source (Union[str, Path, Image.Image, np.ndarray]): 图像路径或图像对象
@@ -88,16 +88,16 @@ def jaccard_similarity(
     Args:
         set1 (Union[set, list, tuple, str]): 第一个集合或可迭代对象
         set2 (Union[set, list, tuple, str]): 第二个集合或可迭代对象
-        precision (int): 返回的小数点精度，默认保留4位
+        precision (int): 返回的小数点精度,默认保留4位
 
     Returns:
-        float: Jaccard 相似度，范围 [0.0, 1.0]
+        float: Jaccard 相似度,范围 [0.0, 1.0]
     """
     try:
         set1_converted, set2_converted = set(set1), set(set2)
     except TypeError as e:
         raise ValueError(
-            "输入必须是可转换为 set 的可迭代对象，如 list、tuple、str、set"
+            "输入必须是可转换为 set 的可迭代对象,如 list、tuple、str、set"
         ) from e
 
     union = set1_converted | set2_converted

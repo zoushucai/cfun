@@ -4,7 +4,7 @@ from cfun.phrase import Phrase
 
 
 def test_phrase():
-    ### 涉及到torch的安装，以及模型的下载，比较麻烦，按需开启
+    ### 涉及到torch的安装,以及模型的下载,比较麻烦,按需开启
     p = Phrase(corrector="charsimilar")
     fragment = ["下收留情", "手下留情", "人七上下", "情首虾留", "将相王候"]
 

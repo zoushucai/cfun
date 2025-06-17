@@ -26,19 +26,19 @@ class XLabel:
 
         Args:
             image_path (str): 图片路径, 必须真是存在的文件路径
-            data (list[dict]): 标记的坐标，且每个dict中必须包含points这个key， 这个ponits是一个列表，包含四个点的坐标，eg：[[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
-            datakey (str): 标记的坐标点对应的key, 默认是 points, 这个key必须在data中存在， 否则会报错.
+            data (list[dict]): 标记的坐标,且每个dict中必须包含points这个key, 这个ponits是一个列表,包含四个点的坐标,eg：[[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
+            datakey (str): 标记的坐标点对应的key, 默认是 points, 这个key必须在data中存在, 否则会报错.
             platform (str): 平台名称, 自定义, 默认空字符串
-            fixedtimestamp (bool): 是否固定时间戳，默认False, 如果为True，则时间戳为0，否则为当前时间戳
-            filemd5 (Optional[str]): 文件的md5值，默认None， 会根据文件自动计算md5值
-            namereplace (dict): 替换名称的方式，是一个字典， 其中的key是data中的key，value是模板中shapes字段下的key， 用data中的key来替代模板中的key， 如果没有则不传递
-            shape_type (str): 形状类型，默认rectangle, 暂时可选 rectangle, rotation.
+            fixedtimestamp (bool): 是否固定时间戳,默认False, 如果为True,则时间戳为0,否则为当前时间戳
+            filemd5 (Optional[str]): 文件的md5值,默认None, 会根据文件自动计算md5值
+            namereplace (dict): 替换名称的方式,是一个字典, 其中的key是data中的key,value是模板中shapes字段下的key, 用data中的key来替代模板中的key, 如果没有则不传递
+            shape_type (str): 形状类型,默认rectangle, 暂时可选 rectangle, rotation.
 
         !!! note
             shape_type 目前只支持rectangle, rotation.
 
             - `rectangle`: 矩形
-            - `rotation`: 旋转矩形， 需要格外的信息，即旋转角度， 需要在data中添加一个key, 然后再namereplace中添加一个映射值为 direction即可，
+            - `rotation`: 旋转矩形, 需要格外的信息,即旋转角度, 需要在data中添加一个key, 然后再namereplace中添加一个映射值为 direction即可,
 
 
         Example:
@@ -149,7 +149,7 @@ class XLabel:
         """
         检查数据是否符合要求
         :param data: 数据
-        :param namereplace: 替换名称的方式，是一个字典， 其中的key是data中的key，value是模板中的key， 用data中的key来替代模板中的key， 如果没有则不传递
+        :param namereplace: 替换名称的方式,是一个字典, 其中的key是data中的key,value是模板中的key, 用data中的key来替代模板中的key, 如果没有则不传递
         :return: 是否符合要求
         """
         if namereplace:
@@ -171,10 +171,10 @@ class XLabel:
             )
             for item in data
         ), (
-            f"参数 data 中的 {self.datakey} 不是列表，或者长度不为4，或者每个点不是列表，或者长度不为2"
+            f"参数 data 中的 {self.datakey} 不是列表,或者长度不为4,或者每个点不是列表,或者长度不为2"
         )
 
-        # 如果传递了namereplace， 则检查namereplace中的key是否在data中存在
+        # 如果传递了namereplace, 则检查namereplace中的key是否在data中存在
         if not namereplace:
             return True
 
@@ -216,17 +216,17 @@ class XLabel:
     def _obtain_shapes(self) -> list[dict]:
         oneshape = {
             "kie_linking": [],
-            # 标签的类别， 也可以用data中的name来替代
+            # 标签的类别, 也可以用data中的name来替代
             "label": None,  # 必须是字符串
-            # 置信度, 可选， 可以用data中的confidence来替代
-            "score": None,  # 置信度， 可选（可以是数字）
-            # 坐标点, 需要是一个列表， 包含四个点的坐标，
+            # 置信度, 可选, 可以用data中的confidence来替代
+            "score": None,  # 置信度, 可选（可以是数字）
+            # 坐标点, 需要是一个列表, 包含四个点的坐标,
             "points": [],  # [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
             "group_id": None,  # 组ID, 可选
             # 描述信息,对应data中的name
             "description": "",
             "difficult": False,
-            "shape_type": self.shape_type,  # 形状类型， 默认rectangle, 可选 rectangle, rotation
+            "shape_type": self.shape_type,  # 形状类型, 默认rectangle, 可选 rectangle, rotation
             "flags": {},
             "attributes": {},
         }
@@ -257,10 +257,10 @@ class XLabel:
             shapes.append(shape)
         return deepcopy(shapes)
 
-    def _generate_template(self) -> dict:
+    def _generate_template(self, version="2.5.4") -> dict:
         # 填充模板数据
         template_data = {
-            "version": "2.5.4",  # 固定版本
+            "version": version,  # 固定版本
             "flags": {},  # 默认无标记
             "shapes": self._obtain_shapes(),  # 目标框数据
             "imagePath": self.imagename,  # 图片名称
@@ -270,12 +270,13 @@ class XLabel:
         }
         return deepcopy(template_data)
 
-    def save_template(self, save_path: str) -> None:
+    def save_template(self, save_path: str | Path, version="2.5.4") -> None:
         """保存模板数据到文件
 
         Args:
-            save_path (str): 保存路径
+            save_path (str | Path): 保存的文件路径
+            version (str): 模板版本, 默认是2.5.4
         """
-        template_data = self._generate_template()
+        template_data = self._generate_template(version=version)
         with open(str(save_path), "w", encoding="utf-8") as f:
             json.dump(template_data, f, indent=2, ensure_ascii=False)

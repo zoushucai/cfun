@@ -14,10 +14,10 @@ class MakeCharImage:
     Attributes:
         text (str): 生成的字符
         image_size (Tuple[int, int]): 图片大小
-        offset (Union[int, float]): 偏移量，用于加粗文字
+        offset (Union[int, float]): 偏移量,用于加粗文字
         font_path (str): 字体文件路径, None表示随机获取
         output_path (Optional[Union[str, Path]]): 输出图片路径
-        noise_density (float): 噪声密度，范围 [0, 1]
+        noise_density (float): 噪声密度,范围 [0, 1]
 
     Example:
         ```python
@@ -103,7 +103,7 @@ class MakeCharImage:
         bg_color = self.random_bg_color()
         text_color = self.random_text_color()
 
-        # 创建背景（直接使用目标尺寸，避免后续计算问题）
+        # 创建背景（直接使用目标尺寸,避免后续计算问题）
         image = Image.new("RGB", self.image_size, bg_color)
         draw = ImageDraw.Draw(image)
 
@@ -127,7 +127,7 @@ class MakeCharImage:
         """保存图片
 
         Args:
-            path (Optional[Union[str, Path]]): 保存路径，默认使用初始化时的 output_path
+            path (Optional[Union[str, Path]]): 保存路径,默认使用初始化时的 output_path
         """
         if self.generated_image is None:
             self.generate_image()
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     # img_dir = Path("train")
     # subdirs = [d for d in img_dir.iterdir() if d.is_dir()]
     # # 对subdirs 按照拼音排序
-    # # 这里可以使用拼音排序的库，比如 pypinyin
+    # # 这里可以使用拼音排序的库,比如 pypinyin
     # import pypinyin
     # subdirs.sort(key=lambda x: pypinyin.lazy_pinyin(x.name))
     # for idx, subdir in enumerate(subdirs):

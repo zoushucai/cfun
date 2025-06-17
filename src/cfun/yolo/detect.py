@@ -29,7 +29,7 @@ class Detector:
 
         Args:
             model (str | Path): 模型路径
-            names (dict[int, str]): 类别字典，如 {0: "cat", 1: "dog", ...}, 如果不传入，则尝试从onnx模型中提取
+            names (dict[int, str]): 类别字典,如 {0: "cat", 1: "dog", ...}, 如果不传入,则尝试从onnx模型中提取
             imgsz (tuple[int, int], optional): 模型输入图像尺寸 (W, H). Defaults to (640, 640).
             providers (Optional[list], optional): ONNX 推理后端. Defaults to None.
 
@@ -68,7 +68,7 @@ class Detector:
 
         self.imgsz = imgsz
 
-        self.model = model  # 后续未使用，暂存
+        self.model = model  # 后续未使用,暂存
 
     def _letterbox(
         self,
@@ -77,7 +77,7 @@ class Detector:
         color: tuple[int, int, int] = (114, 114, 114),
         scaleup: bool = True,
     ) -> tuple[Image.Image, float, tuple[float, float]]:
-        """重新调整图像大小，保持纵横比并填充空白区域
+        """重新调整图像大小,保持纵横比并填充空白区域
 
         Args:
             img (PIL.Image): Input image.
@@ -120,7 +120,7 @@ class Detector:
         source: Union[str, Path, Image.Image, np.ndarray],
         conf_thres: float = 0.65,
     ) -> list[dict[str, Union[int, float, list[float]]]]:
-        """处理单张图像，返回检测结果"""
+        """处理单张图像,返回检测结果"""
 
         img_tensor, img0, ratio, dw, dh = self._preprocess(source)
         preds = self._infer(img_tensor)[0]
@@ -159,15 +159,15 @@ class Detector:
     def detect(
         self, source: Union[str, Path, Image.Image, np.ndarray, Sequence]
     ) -> list[list[dict[str, Any]]]:
-        """检测图像中的物体，支持多种输入类型和批量检测。
+        """检测图像中的物体,支持多种输入类型和批量检测。
 
         Args:
             source: 单张图像或图像列表。支持路径、PIL.Image 或 cv2 读取的图像。
 
         Returns:
-            list[dict]: 检测结果列表，每个元素是一个字典，包含检测到的物体信息。
+            list[dict]: 检测结果列表,每个元素是一个字典,包含检测到的物体信息。
 
-                - `box` (list[float]): 检测框的坐标，box 格式。
+                - `box` (list[float]): 检测框的坐标,box 格式。
                 - `conf` (float): 检测框的置信度。
                 - `cls` (int): 检测框的类别索引。
                 - `name` (str): 检测框的名称。

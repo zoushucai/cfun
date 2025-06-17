@@ -1,6 +1,6 @@
 """读取文件的函数
 
-该模块提供了读取csv和txt文件的函数，并支持并行处理。
+该模块提供了读取csv和txt文件的函数,并支持并行处理。
 
 """
 
@@ -10,18 +10,18 @@ from typing import Callable, Iterable, Optional
 
 import pandas as pd
 
-## 对于3.12的版本， 可以使用快捷的批处理函数：
+## 对于3.12的版本, 可以使用快捷的批处理函数：
 # from itertools import batched
 
 
 ######################################################
 ########## 公共部分 ##################
 ###########################################
-## 这里定义一个 batched函数， 用于将一个迭代器分成多个批次， python3.12版本可以直接使用: from itertools import batched
+## 这里定义一个 batched函数, 用于将一个迭代器分成多个批次, python3.12版本可以直接使用: from itertools import batched
 def batched(iterable: Iterable, n: int):
     """Returns a batch of n items at a time.
 
-    如果在python3.12版本中， 可以直接使用: from itertools import batched
+    如果在python3.12版本中, 可以直接使用: from itertools import batched
 
     Args:
         iterable: An iterable object.
@@ -49,9 +49,9 @@ def parallel_handle(
 
     Args:
         Iterative (Iterable): 要并行处理的迭代对象。
-        func (Callable): 要执行的函数，签名应为 func(item, *args)。
+        func (Callable): 要执行的函数,签名应为 func(item, *args)。
         args (tuple): 传递给函数的额外参数。
-        max_workers (int, optional): 并发进程数，默认由系统决定。
+        max_workers (int, optional): 并发进程数,默认由系统决定。
 
     Returns:
         处理结果列表
@@ -82,7 +82,7 @@ def parallel_handle(
                 item = futures[future]
                 results.append(future.result())
             except Exception as e:
-                raise AssertionError(f"处理失败，输入项: {item}, 错误信息: {e}") from e
+                raise AssertionError(f"处理失败,输入项: {item}, 错误信息: {e}") from e
 
     return results
 
@@ -116,7 +116,7 @@ def parallel_load_csv(
         files (list[str] | list[Path]): 文件路径列表
         encoding: 编码格式
         max_workers (int): 最大工作线程数
-        batch_size (int): 每批处理的文件数， 当设置很大的时候，即全部文件一起处理时，（前提每个文件都很小），
+        batch_size (int): 每批处理的文件数, 当设置很大的时候,即全部文件一起处理时,（前提每个文件都很小）,
 
     Returns:
         DataFrame: 读取的DataFrame
@@ -136,11 +136,11 @@ def parallel_load_csv(
 ########## txt ##################
 ###########################################
 def _load_txt(file_path: str, encoding: str = "utf-8") -> str:
-    """加载文本文件，返回字符串内容。
+    """加载文本文件,返回字符串内容。
 
     Args:
         file_path (str): 文件路径
-        encoding (str): 文件编码，默认为utf-8
+        encoding (str): 文件编码,默认为utf-8
 
     Returns:
         str: 文件内容,字符串
@@ -162,10 +162,10 @@ def parallel_load_txt(
         files (list[str] | list[Path]): 文件路径列表
         encoding (str): 编码格式
         max_workers (int): 最大工作线程数
-        batch_size (int): 每批处理的文件数， 当设置很大的时候，即全部文件一起处理时，（前提每个文件都很小），
+        batch_size (int): 每批处理的文件数, 当设置很大的时候,即全部文件一起处理时,（前提每个文件都很小）,
 
     Returns:
-        str: 读取的文件内容，字符串
+        str: 读取的文件内容,字符串
     """
     total = len(files)
     all_txts = []

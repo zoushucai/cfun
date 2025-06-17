@@ -13,7 +13,7 @@ class Chaojiying_Client:
     """
     超级鹰验证码客服端
 
-    参考文档：http://www.chaojiying.com/api.php
+    参考文档: http://www.chaojiying.com/api.php
 
     Attributes:
         username (str): 超级鹰用户名
@@ -164,7 +164,7 @@ class Chaojiying_Client:
 
         Example:
             ```python
-            input_str = '之,207,115|成,158,86|人,126,44' #或者直接输入字典格， 会提取里面的 pic_str字段
+            input_str = '之,207,115|成,158,86|人,126,44' #或者直接输入字典格, 会提取里面的 pic_str字段
             output = parse_string_chaojiying(input_str)
             print(output)
             ```
@@ -191,9 +191,9 @@ class Chaojiying_Client:
         return result
 
     def get(self, image_path: str, codetype: int = 9800) -> list:
-        """根据图片和题目类型获取超级鹰识别结果，
+        """根据图片和题目类型获取超级鹰识别结果,
 
-        根据图片和题目类型获取超级鹰识别结果， 暂时只针对 codetype=9800 进行处理，其他类型的暂未测试
+        根据图片和题目类型获取超级鹰识别结果, 暂时只针对 codetype=9800 进行处理,其他类型的暂未测试
 
         Args:
             image_path (str): 图片路径

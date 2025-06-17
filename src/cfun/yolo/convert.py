@@ -1,7 +1,7 @@
 """
-通过json文件把 目标 生成yolo格式的txt文件， 进行目标检测数据分类，按指定的key进行分类， 比如：按照json文件中的 label字段进行分类
+通过json文件把 目标 生成yolo格式的txt文件, 进行目标检测数据分类,按指定的key进行分类, 比如：按照json文件中的 label字段进行分类
 
-也可以直接用xlabeling 这些工具直接导出txt文件， 但需要手动划分数据集
+也可以直接用xlabeling 这些工具直接导出txt文件, 但需要手动划分数据集
 """
 
 import json
@@ -32,13 +32,13 @@ def json_to_yolo_txt(
     Args:
         json_dir (Union[Path, str]): 存放 JSON 标注文件的目录
         label_key (str): 用于分类的键,如 "label"
-        class_mapping (dict[int, str]): 类别映射字典, 键为整数 ID,从0开始，值为字符串类名,类别名称映射字典，对应json中的label_key
+        class_mapping (dict[int, str]): 类别映射字典, 键为整数 ID,从0开始,值为字符串类名,类别名称映射字典,对应json中的label_key
         output_dir (Union[Path, str]): 输出的 TXT 文件的目录
         image_dir (None | Path | str): 原始图像文件所在目录. json文件和图像文件同名
         image_suffix (str): 图像文件后缀名, 默认 ".png"
         force_overwrite (bool): 是否强制覆盖输出目录, 默认 False
         ischeck (bool): 是否检查图像文件是否存在, 默认 True, 如果为True, 则会根据json文件的名称去检查图像文件是否存在, 如果不存在则报错
-        shape_type (str, optional): 形状类型. 暂时只能是rectangle(默认) 或 rotation.  rectangle表示矩形，rotation表示旋转矩形.
+        shape_type (str, optional): 形状类型. 暂时只能是rectangle(默认) 或 rotation.  rectangle表示矩形,rotation表示旋转矩形.
 
     Returns:
         None
@@ -74,7 +74,7 @@ def json_to_yolo_txt(
     output_dir = Path(output_dir)
     if ischeck and image_dir is not None:
         image_dir = Path(image_dir)
-    clm = class_mapping  # 重新更改变量名，太长了
+    clm = class_mapping  # 重新更改变量名,太长了
     if not isinstance(clm, dict) or not all(
         isinstance(k, int) and isinstance(v, str) for k, v in clm.items()
     ):
@@ -83,7 +83,7 @@ def json_to_yolo_txt(
     if output_dir.exists():
         if force_overwrite:
             shutil.rmtree(output_dir)
-            print(f"[警告] 输出目录已存在，已被删除: {output_dir}")
+            print(f"[警告] 输出目录已存在,已被删除: {output_dir}")
         else:
             raise FileExistsError(f"Output directory already exists: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -114,7 +114,7 @@ def json_to_yolo_txt(
             assert label_id is not None, f"Label '{label_name}' not in class mapping."
             if shape_type == "rectangle":
                 # YOLO assumes (x_center, y_center, width, height)
-                # (x1, y1) 左上角，(x2, y2) 右下角
+                # (x1, y1) 左上角,(x2, y2) 右下角
                 x1, y1 = map(int, points[0])
                 x2, y2 = map(int, points[2])
                 assert x1 < x2 and y1 < y2, f"Invalid box: {x1, y1, x2, y2}"
@@ -182,14 +182,14 @@ def crop_images(
     shape_type: str = "rectangle",
 ) -> None:
     """
-    根据 JSON 标注文件裁剪图像，并根据指定字段（如 label ）分类保存。 (只支持矩形框的裁剪，旋转矩阵未知）
+    根据 JSON 标注文件裁剪图像,并根据指定字段（如 label ）分类保存。 (只支持矩形框的裁剪,旋转矩阵未知）
 
     Args:
         json_dir (Union[Path, str]): 存放 JSON 标注文件的目录
         image_dir (Union[Path, str]): 原始图像文件所在目录. json文件和图像文件同名,
         image_suffix (str): 图像文件后缀名, 默认 ".png"
         category_key (str): 用于分类图像的字段（例如 "label"）
-        isremove_chinese (bool): 裁剪后的图片是否移除中文字符和下划线_, 默认 True， 这里的下划线是指原来文件名中的下划线，因为裁剪后的图片文件名中会有下划线
+        isremove_chinese (bool): 裁剪后的图片是否移除中文字符和下划线_, 默认 True, 这里的下划线是指原来文件名中的下划线,因为裁剪后的图片文件名中会有下划线
         output_dir (Union[Path, str]): 裁剪后图像的输出目录, 默认 "cropped"
         force_overwrite (bool): 是否强制覆盖输出目录, 默认 False, 如果为True, 则会删除原有的输出目录
         ischeck (bool): 是否检查图像文件是否存在, 默认 True, 如果为True, 检查json文件数量和图像文件数量是否一致, 如果不一致则报错
@@ -220,7 +220,7 @@ def crop_images(
     if output_dir.exists():
         if force_overwrite:
             shutil.rmtree(output_dir)
-            print(f"[警告] 输出目录已存在，已被删除: {output_dir}")
+            print(f"[警告] 输出目录已存在,已被删除: {output_dir}")
         else:
             raise FileExistsError(f"Output directory already exists: {output_dir}")
 
@@ -232,7 +232,7 @@ def crop_images(
             image_path = image_dir / (json_file.stem + image_suffix)
             if not image_path.exists():
                 raise FileNotFoundError(f"缺失图像文件: {image_path}")
-        print(f"[检查] 找到 {len(json_files)} 个 JSON 文件，图像文件匹配正常。")
+        print(f"[检查] 找到 {len(json_files)} 个 JSON 文件,图像文件匹配正常。")
 
     for idx, json_file in enumerate(json_files):
         if idx % 100 == 0 or idx == len(json_files) - 1:
@@ -273,21 +273,21 @@ def crop_images(
 
 
 def _box_to_polygon(boxitem: dict, key: str = "box", replace: str = "points") -> dict:
-    """将 box 表示 [x1, y1, x2, y2] 转换为 polygon 表示 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]。 四个点来表示一个矩形框（左上，右上，右下，左下）.
+    """将 box 表示 [x1, y1, x2, y2] 转换为 polygon 表示 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]。 四个点来表示一个矩形框（左上,右上,右下,左下）.
 
-    polygon对应四个点来表示一个矩形框（左上，右上，右下，左下）. box利用左上角和右下角的坐标来表示一个矩形框。 二者进行互换， 只是替换key以及对应的值，其他的保持不变。
+    polygon对应四个点来表示一个矩形框（左上,右上,右下,左下）. box利用左上角和右下角的坐标来表示一个矩形框。 二者进行互换, 只是替换key以及对应的值,其他的保持不变。
 
 
     Args:
-        boxitem (dict): 包含 box 的字典，格式为 {"box": [x1, y1, x2, y2], ...}
-        key (str): box 的键名，默认为 "box"
-        replace (str): polygon 的键名，默认为 "points"
+        boxitem (dict): 包含 box 的字典,格式为 {"box": [x1, y1, x2, y2], ...}
+        key (str): box 的键名,默认为 "box"
+        replace (str): polygon 的键名,默认为 "points"
 
     Returns:
-         dict: 转换后的 polygon 表示，格式为 {"points": [[x1, y1], ..., [x1, y2]], ...}
+         dict: 转换后的 polygon 表示,格式为 {"points": [[x1, y1], ..., [x1, y2]], ...}
     """
     box_item = deepcopy(boxitem)
-    # 深拷贝，避免修改原始数据
+    # 深拷贝,避免修改原始数据
     assert isinstance(box_item, dict), "box_item must be a dictionary"
     assert key in box_item, f"'{key}' not found in input"
     assert len(box_item[key]) == 4, f"'{key}' must contain four coordinates"
@@ -295,7 +295,7 @@ def _box_to_polygon(boxitem: dict, key: str = "box", replace: str = "points") ->
     x1, y1, x2, y2 = box_item[key]
     assert x1 < x2 and y1 < y2, f"Invalid box coordinates: {x1}, {y1}, {x2}, {y2}"
 
-    # 这里主要是保持原来的数据结构， 只是替换key以及对应的值，其他的保持不变
+    # 这里主要是保持原来的数据结构, 只是替换key以及对应的值,其他的保持不变
     new_item = {}
     for k, v in box_item.items():
         if k == key:
@@ -316,18 +316,18 @@ def _polygon_to_box(
     """将 polygon 表示（四个点）转换为 box 表示 [x1, y1, x2, y2]。
 
 
-    polygon对应四个点来表示一个矩形框（左上，右上，右下，左下）. box利用左上角和右下角的坐标来表示一个矩形框。 二者进行互换， 只是替换key以及对应的值，其他的保持不变。
+    polygon对应四个点来表示一个矩形框（左上,右上,右下,左下）. box利用左上角和右下角的坐标来表示一个矩形框。 二者进行互换, 只是替换key以及对应的值,其他的保持不变。
 
     Args:
-        polygon_item (dict): 包含 polygon 的字典，例如 {"points": [[x1, y1], ..., [x1, y2]], ...}
-        key (str): polygon 的键名，默认为 "points"
-        replace (str): box 的键名，默认为 "box"
+        polygon_item (dict): 包含 polygon 的字典,例如 {"points": [[x1, y1], ..., [x1, y2]], ...}
+        key (str): polygon 的键名,默认为 "points"
+        replace (str): box 的键名,默认为 "box"
 
     Returns:
-        dict: 转换后的 box 表示，例如 {"box": [x1, y1, x2, y2], ...}
+        dict: 转换后的 box 表示,例如 {"box": [x1, y1, x2, y2], ...}
     """
     polygon_item = deepcopy(polygonitem)
-    # 深拷贝，避免修改原始数据
+    # 深拷贝,避免修改原始数据
 
     assert isinstance(polygon_item, dict), "polygon_item must be a dictionary"
     assert key in polygon_item, f"'{key}' not found in input"
@@ -356,16 +356,16 @@ def box_to_polygon(
     """将 box 格式 转换为 polygon 格式。
 
     !!! note
-        - box 表示为 [x1, y1, x2, y2]， 其中 x1, y1 为左上角坐标， x2, y2 为右下角坐标。
+        - box 表示为 [x1, y1, x2, y2], 其中 x1, y1 为左上角坐标, x2, y2 为右下角坐标。
 
-        - polygon 表示为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]， 其中四个点分别表示左上、右上、右下、左下。
+        - polygon 表示为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]], 其中四个点分别表示左上、右上、右下、左下。
 
-        polygon对应四个点来表示一个矩形框（左上，右上，右下，左下）,  box对应用两个点来表示一个矩形框（左上和右下）。 二者进行互换， 只是替换key以及对应的值，其他的保持不变。
+        polygon对应四个点来表示一个矩形框（左上,右上,右下,左下）,  box对应用两个点来表示一个矩形框（左上和右下）。 二者进行互换, 只是替换key以及对应的值,其他的保持不变。
 
     Args:
-        box (Union[dict, list]): box 表示，
-        key (str): box 的键名，默认为 "box"
-        replace (str): polygon 的键名，默认为 "points"， 可以和key相同,
+        box (Union[dict, list]): box 表示,
+        key (str): box 的键名,默认为 "box"
+        replace (str): polygon 的键名,默认为 "points", 可以和key相同,
 
     Returns:
         Union[dict, list]: 转换后的 polygon 格式
@@ -388,7 +388,7 @@ def box_to_polygon(
         #     {"points": [[10, 20], [30, 20], [30, 40], [10, 40]], "cls": "cat", "conf": 0.9},
         #     {"points": [[50, 60], [70, 60], [70, 80], [50, 80]], "cls": "dog", "conf": 0.8}
         # ]
-        # 注意: 这里的 box 表示是一个字典，包含了 box 的坐标、类别和置信度
+        # 注意: 这里的 box 表示是一个字典,包含了 box 的坐标、类别和置信度
         ```
     """
     if isinstance(box, dict):
@@ -403,16 +403,16 @@ def polygon_to_box(
     """将 polygon 格式 转换为 box 格式。
 
     !!! note
-        - box 表示为 [x1, y1, x2, y2]， 其中 x1, y1 为左上角坐标， x2, y2 为右下角坐标。
+        - box 表示为 [x1, y1, x2, y2], 其中 x1, y1 为左上角坐标, x2, y2 为右下角坐标。
 
-        - polygon 表示为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]， 其中四个点分别表示左上、右上、右下、左下。
+        - polygon 表示为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]], 其中四个点分别表示左上、右上、右下、左下。
 
-        polygon对应四个点来表示一个矩形框（左上，右上，右下，左下）,  box对应用两个点来表示一个矩形框（左上和右下）。 二者进行互换， 只是替换key以及对应的值，其他的保持不变。
+        polygon对应四个点来表示一个矩形框（左上,右上,右下,左下）,  box对应用两个点来表示一个矩形框（左上和右下）。 二者进行互换, 只是替换key以及对应的值,其他的保持不变。
 
     Args:
         polygon (Union[dict, list]): polygon 表示
-        key (str): polygon 的键名，默认为 "points"
-        replace (str): box 的键名，默认为 "box", 可以和key相同.
+        key (str): polygon 的键名,默认为 "points"
+        replace (str): box 的键名,默认为 "box", 可以和key相同.
 
     Returns:
         Union[dict, list]: 转换后的 box 格式

@@ -28,7 +28,7 @@ class Classifier:
 
         Args:
             model (str | Path): 模型路径
-            names (dict[int, str]): 类别字典，如 {0: "cat", 1: "dog", ...}, 如果不传入，则尝试从onnx模型中提取
+            names (dict[int, str]): 类别字典,如 {0: "cat", 1: "dog", ...}, 如果不传入,则尝试从onnx模型中提取
             imgsz (tuple[int, int], optional): 模型输入图像尺寸 (W, H). Defaults to (64, 64).
             providers (Optional[list], optional): ONNX 推理后端. Defaults to None.
         """
@@ -58,7 +58,7 @@ class Classifier:
                     f"imgsz must be a tuple or list of two integers, but got {imgsz!r}"
                 )
         self.imgsz = (64, 64) if imgsz else extract_info_from_onnx(model, "imgsz")
-        self.model = model  # 后续未使用，暂存
+        self.model = model  # 后续未使用,暂存
 
     def _preprocess(
         self, source: Union[str, Path, Image.Image, np.ndarray]
@@ -87,7 +87,7 @@ class Classifier:
         img = np.array(img).astype(np.float32) / 255.0  # 转为 float32 并归一化
         img = np.transpose(img, (2, 0, 1))  # HWC → CHW
         img = np.expand_dims(img, axis=0)  # 添加 batch 维度 → NCHW
-        # ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组，使得运行速度更快。
+        # ascontiguousarray函数将一个内存不连续存储的数组转换为内存连续存储的数组,使得运行速度更快。
         img = np.ascontiguousarray(img)
         return img
 
@@ -104,7 +104,7 @@ class Classifier:
             source (Union[str, Path, Image.Image, np.ndarray]): 图像路径或图像对象
 
         Returns:
-            dict: 分类结果，包含 top1, top1name, top1conf, top5, top5name, top5conf
+            dict: 分类结果,包含 top1, top1name, top1conf, top5, top5name, top5conf
 
                 - `top1name` (str): 分类结果的名称（Top-1）。
                 - `top1conf` (float): 分类结果的置信度（Top-1）。
@@ -138,7 +138,7 @@ class Classifier:
 
         # 构建 top-5 概率（保留 4 位小数）和名称
         top5_conf = [round(float(probs[i]), 4) for i in top5_indices]
-        # 如果不对应，则报错，这是希望看见的
+        # 如果不对应,则报错,这是希望看见的
 
         top5_names = [self.names[i] for i in top5_indices]
 
@@ -157,7 +157,7 @@ class Classifier:
         self,
         source: Union[str, Path, Image.Image, np.ndarray, Sequence],
     ) -> list[dict]:
-        """图像分类函数，支持单个或多个图像，图像可以是路径、PIL.Image 或 OpenCV 图像。
+        """图像分类函数,支持单个或多个图像,图像可以是路径、PIL.Image 或 OpenCV 图像。
 
         Args:
             source: 图像路径、PIL.Image、OpenCV 图像或它们的列表。
@@ -204,12 +204,12 @@ class Classifier:
     ) -> float:
         """计算两个图片的相似度, 采用 Jaccard 相似度
 
-        原理: 首先计算两个图片的 top5 类别，类别的概率应该大于阈值，然后计算这两个集合的 Jaccard 相似度。
+        原理: 首先计算两个图片的 top5 类别,类别的概率应该大于阈值,然后计算这两个集合的 Jaccard 相似度。
 
         Args:
             img_path1 (str | Path | Image.Image | np.ndarray): 第一张图片的路径或图像对象
             img_path2 (str | Path | Image.Image | np.ndarray): 第二张图片的路径或图像对象
-            threshold (float, optional): 置信度阈值，默认值为 0.2
+            threshold (float, optional): 置信度阈值,默认值为 0.2
 
         Returns:
             float: 相似度
@@ -226,7 +226,7 @@ class Classifier:
         """
 
         result = self.classify([img_path1, img_path2])
-        # 对前五个的概率 进行筛选，至少大于 threshold
+        # 对前五个的概率 进行筛选,至少大于 threshold
         # 根据 top5conf 过滤
         result1 = fillter_top5(result[0], threshold)
         result2 = fillter_top5(result[1], threshold)

@@ -17,7 +17,7 @@ from ..yolo.detect import Detector
 
 class IdCardStraight:
     """
-    sfzOCR返回结果，正常的sfz大概率识别没有什么问题，少数名族sfz，壮文、藏文、蒙文基本识别也没问题
+    sfzOCR返回结果,正常的sfz大概率识别没有什么问题,少数名族sfz,壮文、藏文、蒙文基本识别也没问题
     """
 
     nation_list = [
@@ -106,7 +106,7 @@ class IdCardStraight:
 
     def birth_no(self):
         """
-        提取并验证sfz号码，识别性别。
+        提取并验证sfz号码,识别性别。
         """
         for txt in self.result:
             # 使用统一的正则表达式匹配18位sfz（末位可能是 X 或 x）
@@ -121,8 +121,8 @@ class IdCardStraight:
         """
         sfz姓名
         """
-        # 如果姓名后面有跟文字，则取名后面的字段，如果"名"不存在，那肯定也就没有"姓名",所以在没有"名"的情况下只要判断是否有"姓"就可以了
-        # 名字限制是2位以上，所以至少这个集合得3位数，才进行"名"或"姓"的判断
+        # 如果姓名后面有跟文字,则取名后面的字段,如果"名"不存在,那肯定也就没有"姓名",所以在没有"名"的情况下只要判断是否有"姓"就可以了
+        # 名字限制是2位以上,所以至少这个集合得3位数,才进行"名"或"姓"的判断
 
         for i, txt in enumerate(self.result):
             if ("姓名" in txt or "名" in txt or "姓" in txt) and len(txt) > 3:
@@ -136,7 +136,7 @@ class IdCardStraight:
                     name = ""
                 if len(name) > 1:
                     self.res["name"] = name
-                    self.result[i] = "temp"  # 移除掉姓名字段，防止后面误识别
+                    self.result[i] = "temp"  # 移除掉姓名字段,防止后面误识别
                     return
 
     def sex(self):
@@ -151,14 +151,14 @@ class IdCardStraight:
 
     def national(self):
         # 性别女民族汉
-        # 先判断是否有"民族xx"或"族xx"或"民xx"这种类型的数据，有的话获取xx的数据，然后在56个名族的字典里判断是否包含某个民族，包含则取对应的民族
+        # 先判断是否有"民族xx"或"族xx"或"民xx"这种类型的数据,有的话获取xx的数据,然后在56个名族的字典里判断是否包含某个民族,包含则取对应的民族
         keyword = ["男", "女", "性别", "民", "族", "民族"]
         for i, txt in enumerate(self.result):
             if any(k in txt for k in keyword):
                 for nation in self.nation_list:
                     if nation in txt:
                         self.res["nationality"] = nation
-                        self.result[i] = "temp"  # 移除掉民族字段，防止后面误识别
+                        self.result[i] = "temp"  # 移除掉民族字段,防止后面误识别
                         return
 
     def address(self):
@@ -197,14 +197,14 @@ class IdCardStraight:
                 or "嘎查" in txt
                 or "大学" in txt
             ):
-                # 默认地址至少是在集合的第2位以后才会出现，避免经过上面的名字识别判断未能识别出名字，
-                # 且名字含有以上的这些关键字照成被误以为是地址，默认地址的第一行的文字长度要大于7，只有取到了第一行的地址，才会继续往下取地址
+                # 默认地址至少是在集合的第2位以后才会出现,避免经过上面的名字识别判断未能识别出名字,
+                # 且名字含有以上的这些关键字照成被误以为是地址,默认地址的第一行的文字长度要大于7,只有取到了第一行的地址,才会继续往下取地址
                 if i < 2 or len(addString) < 1 and len(txt) < 7:
                     continue
-                    # 如果字段中含有"住址"、"省"、"址"则认为是地址的第一行，同时通过"址"
+                    # 如果字段中含有"住址"、"省"、"址"则认为是地址的第一行,同时通过"址"
                 # 这个字分割字符串
                 if "住址" in txt or "省" in txt or "址" in txt:
-                    # 通过"址"这个字分割字符串，取集合中的倒数第一个元素
+                    # 通过"址"这个字分割字符串,取集合中的倒数第一个元素
                     addString.insert(0, txt.split("址")[-1])
                 else:
                     addString.append(txt)
@@ -217,7 +217,7 @@ class IdCardStraight:
 
     def predict_name(self):
         """
-        如果PaddleOCR返回的不是姓名xx连着的，则需要去猜测这个姓名
+        如果PaddleOCR返回的不是姓名xx连着的,则需要去猜测这个姓名
         """
         name_pattern = re.compile(r"[\u4e00-\u9fa5]{2,4}")
         for txt in self.result:
@@ -252,7 +252,7 @@ class IdCardStraight:
 
 class IdCardFan:
     """
-    sfzOCR返回结果，正常的sfz大概率识别没有什么问题，少数名族sfz，壮文、藏文、蒙文基本识别也没问题
+    sfzOCR返回结果,正常的sfz大概率识别没有什么问题,少数名族sfz,壮文、藏文、蒙文基本识别也没问题
     """
 
     def __init__(self, result):
@@ -291,7 +291,7 @@ class IdCardFan:
         """
         is_long = False
         for _, txt in enumerate(self.result):
-            # 检查是否有长期字段，如果有，则把valid_end置为长期
+            # 检查是否有长期字段,如果有,则把valid_end置为长期
             if "长期" in txt or re.search(r"\d{4,}[长期]", txt):
                 self.res["valid_end"] = "长期"
                 is_long = True
@@ -305,7 +305,7 @@ class IdCardFan:
                 if matches:
                     self.res["valid_begin"] = matches[0]
                     return
-            # 如果遍历了所有的字段，都没找到8位数的日期，则尝试提取4位以上的数字(只提取年份)
+            # 如果遍历了所有的字段,都没找到8位数的日期,则尝试提取4位以上的数字(只提取年份)
             for _, txt in enumerate(self.result):
                 # 尝试提取4位以上的数字（如：2017）
                 years = re.findall(r"19\d{2}|20\d{2}", txt)
@@ -331,10 +331,10 @@ class IdCardFan:
                     self.res["valid_begin"] = begin
                     self.res["valid_end"] = end
                     return
-                # 如果没有16位数字，则尝试提取4位以上的数字(只提取年份)
+                # 如果没有16位数字,则尝试提取4位以上的数字(只提取年份)
                 # 尝试从 1950-2099 年份中提取(有可能提取出错, 比如  '201709202027' 这种, 理论上是 2017, 2027, 但是实际上是 2017, 2020)
                 ## 如何避免呢
-                # 如果没有匹配到16位数字，则尝试提取年份（格式为 19xx 或 20xx）
+                # 如果没有匹配到16位数字,则尝试提取年份（格式为 19xx 或 20xx）
                 years = re.findall(r"19\d{2}|20\d{2}", txt)
                 if (
                     len(years) == 2
@@ -385,9 +385,9 @@ class IdCardOCRIdentify:
         返回识别结果
         """
         result = self.ocr.ocr(img)
-        # 返回统一的格式， 只要文本，变成一个list
+        # 返回统一的格式, 只要文本,变成一个list
         if self.usemodel == "baiduonnx":
-            # 不用处理，因为返回的以及是字典了
+            # 不用处理,因为返回的以及是字典了
             pass
         elif self.usemodel == "paddleocr":
             result = self._convert_to_dict(result[0])
@@ -399,7 +399,7 @@ class IdCardOCRIdentify:
         将嵌套列表结构转换为字典列表形式。(针对百度的PaddleOCR返回的结果 )
 
         参数:
-            data: 原始数据，包含多重嵌套的 box 和 (text, confidence) 元组。
+            data: 原始数据,包含多重嵌套的 box 和 (text, confidence) 元组。
 
         返回:
             list[dict]: 每个字典包含 'box', 'text', 'confidence' 三个键。
@@ -448,7 +448,7 @@ class IdCardOCRIdentify:
         return img
 
     def _crop_mask(self, img, cls, mask, cls_box=None, debug=True) -> tuple[Any, Any]:
-        """根据mask裁剪图片，使得图片只返回需要识别的部分"""
+        """根据mask裁剪图片,使得图片只返回需要识别的部分"""
         x1, y1, x2, y2 = map(int, mask)
         h, w = img.shape[:2]
         if cls == 0:
@@ -497,7 +497,7 @@ class IdCardOCRIdentify:
                 cv2.imwrite("img_sec1.jpg", img_sec1)
                 cv2.imwrite("img_sec2.jpg", img_sec2)
             return img_sec1, img_sec2
-        # 如果没有匹配的cls，返回两个None，保证返回类型一致
+        # 如果没有匹配的cls,返回两个None,保证返回类型一致
         return None, None
 
     def _ocr_crop(self, img_sec1, img_sec2):
@@ -526,7 +526,7 @@ class IdCardOCRIdentify:
             cls (int): 1表示正面, 0表示反面, 必须写, 主要是为了更好的识别和提取信息
             mask (list): 用于国徽的mask, 可以不传,即一个国徽在图上的坐标, 左上, 右下
             cls_box (list): 用于sfz的box, 可以不传,即一个sfz在图上的坐标, 左上, 右下
-            use_crop (bool): 是否使用裁剪后的图片进行识别, 默认是使用裁剪后的图片进行识别, 如果不传, 则默认使用原图进行识别,裁剪后信息可能少，但原图识别可能噪音多
+            use_crop (bool): 是否使用裁剪后的图片进行识别, 默认是使用裁剪后的图片进行识别, 如果不传, 则默认使用原图进行识别,裁剪后信息可能少,但原图识别可能噪音多
         """
         img = self._load_image(img)
         assert cls in [0, 1], f"cls must be 0 or 1, but got {cls}"
@@ -553,7 +553,7 @@ class IdCardOCRIdentify:
 
         out["result"]["cls"] = self.cls
 
-        # 检查是否有没有识别到的信息(只对正面进行检查，因为反面在提取信息的时候以及处理过了)
+        # 检查是否有没有识别到的信息(只对正面进行检查,因为反面在提取信息的时候以及处理过了)
         # 大多数只有名族识别不到
         # 特殊处理：正面且民族缺失
         if (
@@ -617,7 +617,7 @@ class IdCardOCRIdentify:
         expand_n = max(1, min(int(min(w, h) * 0.02), 5))
         x1, y1 = max(0, x1 - expand_n), max(0, y1 - expand_n)
         x2, y2 = min(w, x2 + expand_n), min(h, y2 + expand_n)
-        # # 4. 对给定的大小进行收缩，收缩 2% 的像素, 但是不能小于 1, 也不能大于 5
+        # # 4. 对给定的大小进行收缩,收缩 2% 的像素, 但是不能小于 1, 也不能大于 5
         # shrink_n = max(1, min(int(min(w, h) * 0.1), 5))
         # x1, y1 = max(0, x1 + shrink_n), max(0, y1 + shrink_n)
         # x2, y2 = min(w, x2 - shrink_n), min(h, y2 - shrink_n)
@@ -625,14 +625,14 @@ class IdCardOCRIdentify:
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
         img_crop = img[y1:y2, x1:x2]
         # 5.1. 如果是不是宽矩形, 则旋转 90 度, 如何知道选择旋转 90 度还是 270 度呢?
-        # 这里先旋转90度，把图片变成宽矩形, 但是不一定是正立的, 后续靠 is_need_rotate 来判断
+        # 这里先旋转90度,把图片变成宽矩形, 但是不一定是正立的, 后续靠 is_need_rotate 来判断
         if not self._is_width_larger(size):
             img_crop = cv2.rotate(img_crop, cv2.ROTATE_90_CLOCKWISE)
 
         # 6. 调整大小,放大图片提高分辨率
         n = 4
-        dstw = 240 * n  # 提高分辨率，原为240
-        dsth = 151 * n  # 提高分辨率，原为151
+        dstw = 240 * n  # 提高分辨率,原为240
+        dsth = 151 * n  # 提高分辨率,原为151
         img_crop = cv2.resize(img_crop, (dstw, dsth), interpolation=cv2.INTER_CUBIC)
 
         return img_crop
@@ -658,7 +658,7 @@ class IdCardOCRIdentify:
         # 0. 初步检查, 获取图片的高度和宽度, 必须是宽矩形, 宽度大于高度
         h, w = img.shape[:2]
         if h >= w:
-            raise ValueError("图片应为宽矩形，宽度应大于高度")
+            raise ValueError("图片应为宽矩形,宽度应大于高度")
         center_x = w // 2
         # center_y = h // 2
 
@@ -687,7 +687,7 @@ class IdCardOCRIdentify:
     ) -> np.ndarray:
         """在图像上绘制矩形并可选地添加文字。
 
-        这个函数可以用于在图像上绘制矩形框，并可选地在矩形框内添加文字。它支持多种输入格式，包括图像路径、numpy 数组等。
+        这个函数可以用于在图像上绘制矩形框,并可选地在矩形框内添加文字。它支持多种输入格式,包括图像路径、numpy 数组等。
 
         Args:
             img_path (Union[str, Path, np.ndarray]): 输入图像的路径或 numpy 数组。
@@ -696,7 +696,7 @@ class IdCardOCRIdentify:
             text (str): 矩形内部要绘制的可选文字。默认为空字符串。
             thickness (int): 矩形边框的厚度。默认值为 2。
             font_scale (float): 文字大小的缩放因子。默认值为 1.0。
-            text_color (Optional[tuple]): 文字颜色的 BGR 格式。如果未指定，默认为矩形颜色。
+            text_color (Optional[tuple]): 文字颜色的 BGR 格式。如果未指定,默认为矩形颜色。
 
         Returns:
             np.ndarray: 绘制了矩形（和可选文字）的图像。
@@ -752,7 +752,7 @@ class IDCardOCR:
 
         Args:
             model (Optional[str]): 模型路径
-            temp_dir (Optional[Union[str, Path]]): 临时目录路径（默认为 None，使用系统默认临时目录）, 临时文件目录下的文件夹和文件，会被定期清理，默认是30天.
+            temp_dir (Optional[Union[str, Path]]): 临时目录路径（默认为 None,使用系统默认临时目录）, 临时文件目录下的文件夹和文件,会被定期清理,默认是30天.
         """
         self.model = model
         self.det = Detector(model, imgsz=(640, 640))
@@ -762,7 +762,7 @@ class IDCardOCR:
             self.temp_dir = Path(temp_dir)
         else:
             # tempfile.TemporaryDirectory() # 创建临时目录,完成上下文后会自动删除
-            # tempfile.mkdtemp() 用户用完临时目录后需要自行将其删除， 返回新目录的绝对路径。
+            # tempfile.mkdtemp() 用户用完临时目录后需要自行将其删除, 返回新目录的绝对路径。
             self._tempdir = tempfile.mkdtemp()
             self.temp_dir = Path(self._tempdir)
 
@@ -778,13 +778,13 @@ class IDCardOCR:
         self,
         img_path: Union[str, Path],
     ) -> dict:
-        """主流程入口：处理sfz图片，返回识别信息
+        """主流程入口：处理sfz图片,返回识别信息
 
         Args:
             img_path (str): 输入图片路径
 
         Returns:
-            dict: 识别结果，包括sfz的上的文字信息，只提取重要的
+            dict: 识别结果,包括sfz的上的文字信息,只提取重要的
         """
         img_path = Path(img_path)
         assert img_path.exists(), f"图片不存在: {img_path}"

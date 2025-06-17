@@ -15,7 +15,7 @@ def calculate_md5(file_path: Path | str) -> str:
     """计算文件的 MD5 值
 
     Args:
-        file_path (Path | str): 文件路径，可以是 Path 对象或字符串
+        file_path (Path | str): 文件路径,可以是 Path 对象或字符串
 
     Returns:
         str: 文件的 MD5 值

@@ -55,20 +55,20 @@ theme:
       icon: material/weather-night
       name: Switch to system preference
   features:
-    - announce.dismiss #呈现可标记为由用户读取的临时公告，可以包含一个用于取消当前公告的按钮
+    - announce.dismiss #呈现可标记为由用户读取的临时公告,可以包含一个用于取消当前公告的按钮
     - navigation.instant # 现在页面不会跳转,而是类似单页应用,搜索和各种跳转都是在当前页面完成,对美观有很大帮助
-    - header.autohide  #自动隐藏顶部标题(在观看文章的时候会自动隐藏，滑动鼠标的时候会自动显示)
+    - header.autohide  #自动隐藏顶部标题(在观看文章的时候会自动隐藏,滑动鼠标的时候会自动显示)
     - navigation.tracking #地址栏中的 URL 将自动更新为在目录中突出显示的活动锚点
-    - navigation.tabs #顶级部分将呈现在上面视口标题下方的菜单层中，但在移动设备上保持原样
-    - navigation.tabs.sticky  #启用粘性选项卡后，导航选项卡将锁定在标题下方，并在向下滚动时始终保持可见
-    - navigation.sections #启用部分后，顶级部分在边栏中呈现为1220px以上视口的组，但在移动设备上保持原样
+    - navigation.tabs #顶级部分将呈现在上面视口标题下方的菜单层中,但在移动设备上保持原样
+    - navigation.tabs.sticky  #启用粘性选项卡后,导航选项卡将锁定在标题下方,并在向下滚动时始终保持可见
+    - navigation.sections #启用部分后,顶级部分在边栏中呈现为1220px以上视口的组,但在移动设备上保持原样
     - navigation.top # 返回顶部的按钮 在上滑时出现
-    - navigation.footer #页脚将呈现在边栏中，但在移动设备上保持原样.,# 页脚提示下一章
+    - navigation.footer #页脚将呈现在边栏中,但在移动设备上保持原样.,# 页脚提示下一章
     - search.suggest # 搜索输入一些字母时推荐补全整个单词
     - search.highlight # 搜索出的文章关键词加入高亮
     - search.share #搜索分享按钮
     - navigation.expand # 打开Tab时左侧目录全部展开
-    - navigation.indexes #启用节索引页后，可以将文档直接附加到节
+    - navigation.indexes #启用节索引页后,可以将文档直接附加到节
     - content.tabs.link
     - content.tooltips
     - content.code.copy #代码复制
@@ -86,14 +86,14 @@ plugins:
           options:
             members_order: source
             heading_level: 3  # 解析的函数的标题级别
-            show_root_full_path: true  #显示根对象标题的完整 Python 路径，默认为true
+            show_root_full_path: true  #显示根对象标题的完整 Python 路径,默认为true
             # show_root_members_full_path: true  #显示根成员的完整 Python 路径。 默认为false
-            # show_object_full_path: true  #递归显示每个成员的完整路径， （默认为false）
+            # show_object_full_path: true  #递归显示每个成员的完整路径, （默认为false）
             parameter_headings: false #显示参数标题（默认为false）
             show_root_toc_entry: true  #显示根对象的目录项(默认为true)
             # summary: true
-            show_symbol_type_heading: true  #显示符号类型标题（默认为false，建议开启）
-            show_symbol_type_toc: true  #显示符号类型目录项（默认为false，建议开启）
+            show_symbol_type_heading: true  #显示符号类型标题（默认为false,建议开启）
+            show_symbol_type_toc: true  #显示符号类型目录项（默认为false,建议开启）
             show_labels: true   #显示标签（默认为true）
             docstring_style: google #google风格的文档字符串
             show_signature: true  #显示方法和函数签名。

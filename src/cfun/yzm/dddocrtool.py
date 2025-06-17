@@ -1,11 +1,11 @@
 """
 ddddocr 目标检测工具类
 
-这个类主要是对 ddddocr 进行封装， 方便使用
+这个类主要是对 ddddocr 进行封装, 方便使用
 
 主要的功能：
 
-1. 目标检测，获取目标检测框
+1. 目标检测,获取目标检测框
 
 2. 获取图片的宽高
 
@@ -15,7 +15,7 @@ ddddocr 目标检测工具类
 
 5. 检查坐标是否在给定的矩形范围内
 
-6. 扩展超级鹰识别的结果，增加目标检测框的坐标 （主要的功能）
+6. 扩展超级鹰识别的结果,增加目标检测框的坐标 （主要的功能）
 
 7. 检查框的格式是否正确
 
@@ -67,13 +67,13 @@ class ImageDet:
 
         Args:
             image_path (str): 图片路径 (与 bboxes 二选一)
-            bboxes (list): [[x1, y1, x2, y2], ...] （与 image_path 二选一）， 这个坐标 左上，右下， 也就是 xyxy 的格式
+            bboxes (list): [[x1, y1, x2, y2], ...] （与 image_path 二选一）, 这个坐标 左上,右下, 也就是 xyxy 的格式
 
         Returns:
             list: [[[x1, y1], [x2, y1], [x2, y2], [x1, y2]], ...]
 
         PS:
-            1. 这个函数主要是把 ddddocr 返回的目标检测框转换为 xlabing 的格式， 也就是四个点的格式， 具体的格式是：
+            1. 这个函数主要是把 ddddocr 返回的目标检测框转换为 xlabing 的格式, 也就是四个点的格式, 具体的格式是：
 
             ```
             [
@@ -84,7 +84,7 @@ class ImageDet:
             ```
         """
         if image_path is None and bboxes is None:
-            raise ValueError("image_path 和 bboxes 必须二选一，不能都为 None")
+            raise ValueError("image_path 和 bboxes 必须二选一,不能都为 None")
 
         if image_path is not None and bboxes is not None:
             raise ValueError("image_path 和 bboxes 不能同时使用")
@@ -106,13 +106,13 @@ class ImageDet:
         """删除太近边缘的框 (xyxy)
 
         Args:
-            bboxes (list): [[x1, y1, x2, y2], ...], （左上角， 右下角），ddddocr 返回的格式
+            bboxes (list): [[x1, y1, x2, y2], ...], （左上角, 右下角）,ddddocr 返回的格式
             image_width (int): 图片宽度
             image_height (int): 图片高度
-            b (int): 边缘距离， 默认是 5
+            b (int): 边缘距离, 默认是 5
 
         Returns:
-            list: 新的框列表，还是 [[x1, y1, x2, y2], ...] 的格式
+            list: 新的框列表,还是 [[x1, y1, x2, y2], ...] 的格式
         """
         assert all(isinstance(bbox, list) and len(bbox) == 4 for bbox in bboxes), (
             "bboxes 中的每个元素必须是一个列表且长度为4"
@@ -133,7 +133,7 @@ class ImageDet:
 
         Args:
             centerxy (list): 坐标 [x, y]
-            box (list): 矩形框的坐标 [x1, y1, x2, y2] （左上角， 右下角），ddddocr 返回的格式
+            box (list): 矩形框的坐标 [x1, y1, x2, y2] （左上角, 右下角）,ddddocr 返回的格式
 
         Returns:
             bool: True or False
@@ -155,22 +155,22 @@ class ImageDet:
             return False
 
     def extendCJYRecognition(self, ocrdata: list, image_path: str) -> list:
-        """扩展超级鹰识别的结果. (也可以是其他平台的结果， 因为很多平台返回的结果都只含中心点坐标)
+        """扩展超级鹰识别的结果. (也可以是其他平台的结果, 因为很多平台返回的结果都只含中心点坐标)
 
         Args:
-            ocrdata (list of dict): 超级鹰识别的结果，每个元素是一个字典，格式如下：
+            ocrdata (list of dict): 超级鹰识别的结果,每个元素是一个字典,格式如下：
 
-                - name (str): 字符内容，例如 `"之"`。
-                - coordinates (list of int): 坐标列表，格式如 `[x, y]`。
+                - name (str): 字符内容,例如 `"之"`。
+                - coordinates (list of int): 坐标列表,格式如 `[x, y]`。
 
             image_path (str): 图片路径。
 
         Returns:
-            list of dict: 扩展后的结果，每个字典包含以下字段：
+            list of dict: 扩展后的结果,每个字典包含以下字段：
 
                 - name (str): 字符内容。
                 - coordinates (list of int): 原始坐标。
-                - points (list of list of float): 四个顶点坐标，格式如 `[[x1, y1], [x2, y1], [x2, y2], [x1, y2]]`。
+                - points (list of list of float): 四个顶点坐标,格式如 `[[x1, y1], [x2, y1], [x2, y2], [x1, y2]]`。
                 - image_width (int): 图片宽度。
                 - image_height (int): 图片高度。
 
@@ -194,9 +194,9 @@ class ImageDet:
                         "coordinates": [126, 44]
                     }
                 ]
-            以上只是返回中心点的坐标， 但是我希望得到目标检测框的坐标，即 四个定点的坐标，
-            因此在这个结果的基础上，增加一个key, 叫做 points, 其值为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
-            采用 xyxy 的格式， 这样就可以直接使用了. 这个目标检测的框如何产生呢？ 这里采用ddddocr的目标检测框来进行扩展。
+            以上只是返回中心点的坐标, 但是我希望得到目标检测框的坐标,即 四个定点的坐标,
+            因此在这个结果的基础上,增加一个key, 叫做 points, 其值为 [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
+            采用 xyxy 的格式, 这样就可以直接使用了. 这个目标检测的框如何产生呢？ 这里采用ddddocr的目标检测框来进行扩展。
             '''
             from cfun.yzm.dddocrtool import ImageDet
             imgdet = ImageDet()
@@ -237,18 +237,18 @@ class ImageDet:
         """
         bboxes = self.detection(
             image_path
-        )  # 返回的坐标，[[x1, y1, x2, y2], [x1, y1, x2, y2], ...] ,xyxy格式
+        )  # 返回的坐标,[[x1, y1, x2, y2], [x1, y1, x2, y2], ...] ,xyxy格式
         # 删除一些检测有问题的框, 比如框距离边缘太近的框
         image_width, image_height, _ = self.get_image_size(image_path)
         bboxes = self._delete_bianyuan(bboxes, image_width, image_height)
 
-        # 这里需要判断一下， 如果框的中心点在框内， 则返回这个框的坐标
+        # 这里需要判断一下, 如果框的中心点在框内, 则返回这个框的坐标
         for box in bboxes:
             x1, y1, x2, y2 = box
             for idata in ocrdata:
                 xy = idata["coordinates"]
                 if self._check_range(xy, box):
-                    # 如果在框内， 则返回这个框的坐标
+                    # 如果在框内, 则返回这个框的坐标
                     idata["points"] = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
                     idata["image_width"] = image_width
                     idata["image_height"] = image_height

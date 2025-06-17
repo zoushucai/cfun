@@ -12,10 +12,10 @@ def get_chinese_font_path_random(key="song") -> Optional[Path]:
     随机获取一个中文字体文件路径, 优先songti
 
     Args:
-        key (str): 字体类型关键字，默认是 "song"，可以是 "song" 或 "hei" 等
+        key (str): 字体类型关键字,默认是 "song",可以是 "song" 或 "hei" 等
 
     Returns:
-        Optional[Path]: 随机中文字体文件路径，如果没有找到则返回 None
+        Optional[Path]: 随机中文字体文件路径,如果没有找到则返回 None
 
     Example:
         ```python
@@ -44,7 +44,7 @@ def get_chinese_font_path_random(key="song") -> Optional[Path]:
 
 def get_chinese_font_paths() -> Dict[str, object]:
     """
-    获取当前系统中的中文字体文件路径（支持 Windows、Linux、macOS，自动判断是否可用 fc-list 命令来查找字体
+    获取当前系统中的中文字体文件路径（支持 Windows、Linux、macOS,自动判断是否可用 fc-list 命令来查找字体
 
     Returns:
         Dict[str, object]: 包含平台、系统类型与字体路径
