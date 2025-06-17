@@ -1,6 +1,6 @@
 [project]
 name = "cfun"
-version = "0.4.7"
+version = "0.4.8"
 description = "my function library"
 readme = "README.md"
 authors = [{ name = "zoushucai", email = "zoushucai@users.noreply.github.com" }]
