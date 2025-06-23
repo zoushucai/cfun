@@ -1,0 +1,76 @@
+[project]
+name = "cfun"
+dynamic = ["version"]  
+description = "my function library"
+readme = "README.md"
+authors = [{ name = "zoushucai", email = "zoushucai@users.noreply.github.com" }]
+requires-python = ">=3.10"
+#尽可能的使用较低版本, 因为自用,在导入别人的包的时候,可能会有版本冲突
+dependencies = [
+    "char-similar-z>=0.2.0",
+    "pandas>=1.5.0",
+    "requests>=2.0.0",
+    "pillow>= 10.0.0",
+    "opencv-python>=4.5.0",
+    "jsonpath>=0.6.0",
+    "onnxruntime==1.21.0",
+    "onnx>=1.18.0",
+    "py3-wget>=1.0.0",
+    "tenacity>=8.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "scikit-learn>=1.1.0",
+    "cfundata >= 0.3.1",
+    "ddddocr>=1.5.0",
+    "imgocr>=0.1.4",
+    "mkdocs>=1.6.1",
+    "mkdocs-autorefs>=1.4.1",
+    "mkdocs-material>=9.6.12",
+    "mkdocstrings[python]>=0.29.1",
+    "pycorrector>=1.0.0",
+    "pytest>=8.3.5",
+    "ruff>=0.11.8",
+    "ultralytics>=8.3.0",
+]
+
+
+[tool.uv]
+index-strategy = "unsafe-best-match"
+
+
+[[tool.uv.index]]
+name = "Tsinghua"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+
+# 加上 PyPI 官方源，确保能拉取全部包版本
+[[tool.uv.index]]
+name = "PyPI"
+url = "https://pypi.org/simple"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+
+
+[tool.ruff.lint]
+extend-select = ["B"]
+
+[project.scripts]
+testing-demo = "cfun:main"
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[project.urls]
+Homepage = "https://github.com/zoushucai/cfun"
+Documentation = "https://cfun.readthedocs.org"
+Repository = "https://github.com/zoushucai/cfun.git"
+Issues = "https://github.com/zoushucai/cfun/issues"
+Changelog = "https://github.com/zoushucai/cfun/blob/main/CHANGELOG.md"
