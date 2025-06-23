@@ -11,6 +11,7 @@ nav:
   - phrase模块: phrase.md
   - read模块: read.md
   - font模块: font.md
+  - imgclean 模块: imgclean.md
   - yolo有关: 
     - xlabel模块: yolo/xlabel.md
     - convert模块: yolo/convert.md
@@ -18,7 +19,7 @@ nav:
     - yolo模块: yolo/yolo.md
     - yzm模块: yolo/yzm.md
     - makechar模块: yolo/makechar.md
-
+  
 edit_uri: edit/main/docs # 编辑按钮跳转的链接
 repo_url: https://github.com/zoushucai/cfun # 右上角点击跳转的链接
 repo_name: cfun # 右上角的名字
