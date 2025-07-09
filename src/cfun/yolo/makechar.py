@@ -43,6 +43,8 @@ class MakeCharImage:
         font_path: str | Path | None = None,
         output_path: str | Path | None = None,
         noise_density: float = 0.25,
+        bg_color: Optional[Tuple[int, int, int]] = None,
+        fg_color: Optional[Tuple[int, int, int]] = None,
     ) -> None:
         assert len(text) == 1, "text must be a single character"
         self.text = text
@@ -54,6 +56,8 @@ class MakeCharImage:
         self.output_path = Path(output_path) if output_path else None
         self.noise_density = noise_density
         self.generated_image = None
+        self.bg_color = bg_color if bg_color else self.random_bg_color()
+        self.fg_color = fg_color if fg_color else self.random_text_color()
 
     @staticmethod
     def load_font(font_path: str, font_size: int) -> Optional[ImageFont.FreeTypeFont]:
@@ -100,8 +104,8 @@ class MakeCharImage:
         if not font:
             raise ValueError(f"Could not load font from: {self.font_path}")
 
-        bg_color = self.random_bg_color()
-        text_color = self.random_text_color()
+        bg_color = self.bg_color
+        text_color = self.fg_color
 
         # 创建背景（直接使用目标尺寸,避免后续计算问题）
         image = Image.new("RGB", self.image_size, bg_color)

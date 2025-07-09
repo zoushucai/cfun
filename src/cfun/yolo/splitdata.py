@@ -285,8 +285,8 @@ def check_image_and_json(
         assert image_path, f"Missing imagePath in {jf}"
         image_name = Path(image_path[0]).name
         image_names_in_json.add(image_name)
-
-        label_values = jsonpath(data, f"$..{label_key}")
+        shapes = data.get("shapes", [])
+        label_values = jsonpath(shapes, f"$..{label_key}")
         if label_values:
             labels.update(label_values)
         else:
