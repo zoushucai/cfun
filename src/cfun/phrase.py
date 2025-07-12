@@ -59,16 +59,24 @@ class Phrase:
 
     basedb_path = pkg_resources.files(data).joinpath("frequency.csv")
 
-    def __init__(self, userdb: str = "", corrector: str = "charsimilar"):
+    def __init__(
+        self, userdb: str = "", corrector: str = "charsimilar", onlyuser: bool = False
+    ):
         """初始化类
 
         Args:
             userdb (str): 用户自定义的数据库路径, 如果不传入,则使用默认的数据库,上传了则会把用户的数据库和默认的数据库进行合并(用户优先)
             corrector (str): 纠错器类型, 可选值为 "charsimilar" 或 "bert", 默认为 "charsimilar"
+            onlyuser (bool): 是否只使用用户自定义的数据库, 默认为 False, 如果为 True,则不加载默认的数据库
         """
-        self.userdb = self._load_dataframe(userdb) if userdb else None
-        self.basedb = self._load_dataframe(Path(str(self.basedb_path)))
-        self.db = self._merge_databases()
+        if onlyuser:
+            self.userdb = self._load_dataframe(userdb) if userdb else None
+            self.basedb = None
+            self.db = self.userdb
+        else:
+            self.userdb = self._load_dataframe(userdb) if userdb else None
+            self.basedb = self._load_dataframe(Path(str(self.basedb_path)))
+            self.db = self._merge_databases()
 
         if corrector in ["bert", "charsimilar"]:
             self.corrector_type = corrector
@@ -182,10 +190,10 @@ class Phrase:
     def _merge_databases(self) -> pd.DataFrame:
         """合并用户数据库和基础数据库"""
         if self.userdb is None:
-            return self.basedb
+            return self.basedb  # type: ignore
         # 合并用户数据库和基础数据库
         df_user = self.userdb.copy()
-        df_base = self.basedb.copy()
+        df_base = self.basedb.copy()  # type: ignore
         df = pd.concat([df_user, df_base]).drop_duplicates("word", keep="last")
         return df.sort_values(by="count", ascending=False).reset_index(drop=True)
 
@@ -200,7 +208,7 @@ class Phrase:
 
         """
         assert isinstance(permutations, list), "permutations must be a list"
-        matched = self.db[self.db["word"].isin(permutations)]
+        matched = self.db[self.db["word"].isin(permutations)]  # type: ignore
         if not matched.empty:
             # 如果找到了匹配的词, 则返回第一个(频率最高的)
             matched = matched.drop_duplicates(subset=["word"], keep="last")
@@ -238,7 +246,7 @@ class Phrase:
         )
         ### 快
         regex_pattern = "|".join(f"^(?:{p})$" for p in patterns)
-        matched_df = self.db[self.db["word"].str.fullmatch(regex_pattern, na=False)]
+        matched_df = self.db[self.db["word"].str.fullmatch(regex_pattern, na=False)]  # type: ignore
         if not matched_df.empty:
             # 如果找到了匹配的词, 则返回第一个(频率最高的), 和所有匹配的 DataFrame
             matched_df = matched_df.drop_duplicates(subset=["word"], keep="last")
