@@ -2,7 +2,7 @@ import hashlib
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import ddddocr
 from loguru import logger
@@ -462,6 +462,56 @@ def main4_check(
                     logger.info(f"Image {i} classified as {top1name}, expected {ecls}")
         except Exception as e:
             logger.info(f"⚠️ Error processing {i}: {e}")
+
+
+def move_images_dir(
+    src_dir: Union[str, Path],
+    dst_dir: Union[str, Path],
+    img_suffix: Optional[list[str]] = None,
+) -> None:
+    """
+    将源目录中的图像文件移动到目标目录的子目录中。主要用于整理图像文件。(请做好备份，避免数据丢失)
+
+    Args:
+        src_dir (Union[str, Path]): 源目录路径，包含图像文件的子目录
+        dst_dir (Union[str, Path]): 目标目录路径，图像文件将被移动到此目录的子目录中
+        img_suffix (Optional[list[str]]): 图像文件后缀列表，默认为 [".jpg", ".jpeg", ".png", ".webp"]
+    """
+    src_dir = Path(src_dir)
+    dst_dir = Path(dst_dir)
+
+    src_subdirs = [d for d in src_dir.iterdir() if d.is_dir()]
+    dst_subdirs = [d for d in dst_dir.iterdir() if d.is_dir()]
+
+    print(f"Found {len(src_subdirs)} subdirectories in {src_dir}")
+    print(f"Found {len(dst_subdirs)} subdirectories in {dst_dir}")
+    if img_suffix is None:
+        img_suffix = [".jpg", ".jpeg", ".png", ".webp"]
+    img_suffix = [s.lower() for s in img_suffix]  # 统一小写
+    for subdir in src_subdirs:
+        dst_subdir = dst_dir / subdir.name
+        dst_subdir.mkdir(exist_ok=True)
+
+        image_files = [
+            f
+            for f in subdir.glob("*")
+            if f.is_file() and f.suffix.lower() in img_suffix
+        ]
+
+        for img_file in image_files:
+            shutil.move(str(img_file), dst_subdir / img_file.name)
+
+        remaining_images = [
+            f
+            for f in subdir.glob("*")
+            if f.is_file() and f.suffix.lower() in img_suffix
+        ]
+
+        if len(remaining_images) == 0:
+            shutil.rmtree(subdir)
+
+    final_subdirs = [d for d in dst_dir.iterdir() if d.is_dir()]
+    print(f"After moving, {len(final_subdirs)} subdirectories in {dst_dir}")
 
 
 if __name__ == "__main__":
