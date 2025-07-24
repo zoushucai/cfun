@@ -17,6 +17,7 @@ dependencies = [
     "onnx>=1.18.0",
     "py3-wget>=1.0.0",
     "tenacity>=8.1.0",
+    "pypinyin>=0.54.0",
 ]
 
 [dependency-groups]

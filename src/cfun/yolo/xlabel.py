@@ -19,6 +19,7 @@ class XLabel:
         filemd5: Optional[str] = None,
         namereplace: Optional[dict] = None,
         shape_type: str = "rectangle",
+        scale: float = 1.0,
     ) -> None:
         """初始化XLabel类
 
@@ -33,6 +34,7 @@ class XLabel:
             filemd5 (Optional[str]): 文件的md5值,默认None, 会根据文件自动计算md5值
             namereplace (dict): 替换名称的方式,是一个字典, 其中的key是data中的key,value是模板中shapes字段下的key, 用data中的key来替代模板中的key, 如果没有则不传递
             shape_type (str): 形状类型,默认rectangle, 暂时可选 rectangle, rotation.
+            scale (float): 缩放比例, 默认1.0, 用于缩放坐标点, 按中心点进行缩放
 
         !!! note
             shape_type 目前只支持rectangle, rotation.
@@ -128,6 +130,9 @@ class XLabel:
         self.data = data
 
         self.shape_type = shape_type
+        self.scale = scale
+        if self.scale <= 0:
+            raise ValueError(f"scale: {self.scale} 必须大于0")
         if shape_type not in ["rectangle", "rotation"]:
             raise ValueError(
                 f"shape_type: {shape_type} 不是 rectangle 或 rotation, 目前只支持这两种类型"
@@ -240,7 +245,7 @@ class XLabel:
                     if key in item and value in shape:
                         shape[value] = item[key]
             # 填充数据
-            shape["points"] = item[self.datakey]
+            shape["points"] = self._resize_rect(item[self.datakey])
             shape["attributes"] = self._obtain_attributes()
             # 保持字符串格式
             if not isinstance(shape["description"], str):
@@ -289,3 +294,27 @@ class XLabel:
             version (str): 模板版本, 默认是2.5.4
         """
         self.save_template(save_path, version=version)
+
+    def _resize_rect(self, points: list[tuple[float, float]]) -> list[list[int]]:
+        """
+        保持中心点不变，对矩形按比例放大或缩小。
+        """
+        if len(points) != 4:
+            raise ValueError("必须提供且仅提供 4 个顶点")
+        # ① 计算中心点
+        cx = sum(x for x, _ in points) / 4
+        cy = sum(y for _, y in points) / 4
+        scale = self.scale
+        # ② 以中心为参考，对向量 (x-cx, y-cy) 乘以 scale
+        pp = [
+            [int(cx + (x - cx) * scale), int(cy + (y - cy) * scale)] for x, y in points
+        ]
+        # ③ 限制坐标在图片范围内
+        pp = [
+            [
+                max(0, min(self.image_width - 1, x)),
+                max(0, min(self.image_height - 1, y)),
+            ]
+            for x, y in pp
+        ]
+        return pp

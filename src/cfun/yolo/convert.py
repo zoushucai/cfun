@@ -9,10 +9,11 @@ import re
 import shutil
 from copy import deepcopy
 from pathlib import Path
-from typing import Union
+from typing import Literal, Union
 
 import cv2
 import numpy as np
+from loguru import logger
 from PIL import Image
 
 
@@ -83,7 +84,7 @@ def json_to_yolo_txt(
     if output_dir.exists():
         if force_overwrite:
             shutil.rmtree(output_dir)
-            print(f"[警告] 输出目录已存在,已被删除: {output_dir}")
+            logger.warning(f"[警告] 输出目录已存在,已被删除: {output_dir}")
         else:
             raise FileExistsError(f"Output directory already exists: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -99,7 +100,7 @@ def json_to_yolo_txt(
 
     for idx, json_file in enumerate(json_files):
         if idx % 100 == 0 or idx == len(json_files) - 1:
-            print(f"Processing {idx}/{len(json_files)}")
+            logger.info(f"Processing {idx}/{len(json_files)}")
 
         with open(json_file, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -175,24 +176,37 @@ def crop_images(
     image_dir: Union[Path, str],
     image_suffix: str = ".png",
     category_key: str = "label",
-    isremove_chinese: bool = True,
+    remove_chinese: Literal[0, 1, 2, 3] = 3,
     output_dir: Union[Path, str] = "cropped",
     force_overwrite: bool = False,
     ischeck: bool = True,
     shape_type: str = "rectangle",
+    min_length: int = 10,
+    issplit: bool = False,
+    train_ratio: float = 0.8,
 ) -> None:
     """
     根据 JSON 标注文件裁剪图像,并根据指定字段（如 label ）分类保存。 (只支持矩形框的裁剪,旋转矩阵未知）
 
     Args:
-        json_dir (Union[Path, str]): 存放 JSON 标注文件的目录
-        image_dir (Union[Path, str]): 原始图像文件所在目录. json文件和图像文件同名,
-        image_suffix (str): 图像文件后缀名, 默认 ".png"
-        category_key (str): 用于分类图像的字段（例如 "label"）
-        isremove_chinese (bool): 裁剪后的图片是否移除中文字符和下划线_, 默认 True, 这里的下划线是指原来文件名中的下划线,因为裁剪后的图片文件名中会有下划线
-        output_dir (Union[Path, str]): 裁剪后图像的输出目录, 默认 "cropped"
-        force_overwrite (bool): 是否强制覆盖输出目录, 默认 False, 如果为True, 则会删除原有的输出目录
-        ischeck (bool): 是否检查图像文件是否存在, 默认 True, 如果为True, 检查json文件数量和图像文件数量是否一致, 如果不一致则报错
+        json_dir: 存放 JSON 标注文件的目录
+        image_dir: 原始图像文件所在目录. json文件和图像文件同名,
+        image_suffix: 图像文件后缀名, 默认 ".png"
+        category_key: 用于分类图像的字段(例如 "label")
+        remove_chinese: 移除中文的方式
+
+            - 0: 不移除中文
+            - 1: 移除中文,
+            - 2: 移除中文,且移除下划线
+            - 3: 把中文替换为拼音
+
+        output_dir: 裁剪后图像的输出目录, 默认 "cropped"
+        force_overwrite: 是否强制覆盖输出目录, 默认 False, 如果为True, 则会删除原有的输出目录
+        ischeck: 是否检查图像文件是否存在, 默认 True, 如果为True, 检查json文件数量和图像文件数量是否一致, 如果不一致则报错
+        shape_type: 形状类型, 默认为 "rectangle", 目前只支持 "rectangle" 或 "rotation", 如果是 "rotation" 则表示旋转矩形
+        min_length: 用于检查每个子分类的数量, 如果数量小于 min_length 则打印警告信息, 默认 10
+        issplit: 是否将裁剪后的图像进行划分, 划分为YOLO 的训练集和验证集, 默认 False, 如果为True, 则会生成一个 "{output_dir}_split" 的目录
+        train_ratio: 训练集比例, 默认 0.8, 如果 issplit 为 True, 则会按照这个比例划分数据集
 
     Returns:
         None
@@ -205,11 +219,11 @@ def crop_images(
             image_dir="weilai1_rotation",
             image_suffix=".jpg",
             category_key="label",
-            isremove_chinese=True,
+            remove_chinese=3,
             output_dir="cropped_rotated",  # 输出的裁剪图片的路径
             force_overwrite=True,  # 是否强制覆盖输出目录
             ischeck = True,
-            shape_type="rotation",
+            shape_type="rectangle",
         )
         ```
     """
@@ -220,7 +234,7 @@ def crop_images(
     if output_dir.exists():
         if force_overwrite:
             shutil.rmtree(output_dir)
-            print(f"[警告] 输出目录已存在,已被删除: {output_dir}")
+            logger.warning(f"[警告] 输出目录已存在,已被删除: {output_dir}")
         else:
             raise FileExistsError(f"Output directory already exists: {output_dir}")
 
@@ -232,11 +246,11 @@ def crop_images(
             image_path = image_dir / (json_file.stem + image_suffix)
             if not image_path.exists():
                 raise FileNotFoundError(f"缺失图像文件: {image_path}")
-        print(f"[检查] 找到 {len(json_files)} 个 JSON 文件,图像文件匹配正常。")
+        logger.info(f"[检查] 找到 {len(json_files)} 个 JSON 文件,图像文件匹配正常。")
 
     for idx, json_file in enumerate(json_files):
         if idx % 100 == 0 or idx == len(json_files) - 1:
-            print(f"Processing {idx}/{len(json_files)}")
+            logger.info(f"Processing {idx}/{len(json_files)}")
 
         with open(json_file, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -245,13 +259,26 @@ def crop_images(
         try:
             image = Image.open(image_file)
         except Exception as e:
-            print(f"[错误] 加载图像失败: {image_file}, 错误: {e}")
+            logger.error(f"[错误] 加载图像失败: {image_file}, 错误: {e}")
             continue
         base_name = json_file.stem
-        if isremove_chinese:
+        if remove_chinese == 0:
+            # 不移除中文
+            pass
+        elif remove_chinese == 1:
             # 移除中文字符
-            base_name = re.sub(r"[\u4e00-\u9fa5]", "", base_name)
-            base_name = base_name.replace("_", "")  # 去掉下划线
+            base_name = _remove_chinese_characters(base_name, "")
+        elif remove_chinese == 2:
+            # 移除中文字符,且移除下划线
+            base_name = _remove_chinese_characters(base_name, "")
+            base_name = base_name.replace("_", "")
+        elif remove_chinese == 3:
+            # 把中文替换为拼音
+            from pypinyin import Style, lazy_pinyin
+
+            subpinyin = lazy_pinyin(base_name, style=Style.TONE3)
+            subpinyin = "".join(subpinyin)
+            base_name = _remove_chinese_characters(base_name, subpinyin)
 
         for shape in data.get("shapes", []):
             points = shape["points"]
@@ -270,6 +297,36 @@ def crop_images(
             out_path: Path = output_dir / category / file_name
             out_path.parent.mkdir(parents=True, exist_ok=True)
             cropped.save(out_path)
+
+    # 检查每个子分类的数量
+    subdirs = [d for d in output_dir.iterdir() if d.is_dir()]
+    for subdir in subdirs:
+        count = len(list(subdir.glob(f"*{image_suffix}")))
+        if count < min_length:
+            logger.warning(
+                f"[警告] 子分类 '{subdir.name}' 的图像数量 ({count}) 小于最小要求 ({min_length})"
+            )
+    if issplit:
+        from ultralytics.data.split import split_classify_dataset
+
+        split_classify_dataset(source_dir=output_dir, train_ratio=train_ratio)
+        newdir = Path(str(output_dir) + "_split")
+        if not newdir.exists():
+            logger.warning(f"[警告] 划分后的数据集目录不存在: {newdir}")
+        else:
+            _check_empty_dirs(newdir)
+
+
+# 检查划分的数据集是否存在空文件夹
+def _check_empty_dirs(path: Path):
+    for p in path.iterdir():
+        if p.is_dir() and not any(p.iterdir()):
+            logger.warning(f"Empty directory: {p}")
+
+
+def _remove_chinese_characters(text, subpinyin):
+    chinese_char_pattern = re.compile(r"[\u4e00-\u9fff]+")
+    return chinese_char_pattern.sub(subpinyin, text)
 
 
 def _box_to_polygon(boxitem: dict, key: str = "box", replace: str = "points") -> dict:
@@ -480,7 +537,7 @@ if __name__ == "__main__":
     #     image_dir="weilai1_rotation",
     #     image_suffix=".jpg",
     #     category_key="label",
-    #     isremove_chinese=True,
+    #     remove_chinese=3,
     #     output_dir="cropped_rotated",  # 输出的裁剪图片的路径
     #     force_overwrite=True,  # 是否强制覆盖输出目录
     #     shape_type="rotation",

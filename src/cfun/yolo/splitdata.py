@@ -261,9 +261,19 @@ def check_image_and_json(
     json_files = sorted([f for f in json_dir.glob("*.json") if f.is_file()])
     image_files = sorted([f for f in image_dir.glob(f"*{image_suffix}") if f.is_file()])
     # 由于后缀名大写和小写的问题,有些时候要小心
-
+    if len(json_files) != len(image_files):
+        jsonstem = {f.stem for f in json_files}
+        imagestem = {f.stem for f in image_files}
+        if abs(len(jsonstem) - len(imagestem)) <= 10:
+            diff = set(jsonstem) - set(imagestem)
+            diff2 = set(imagestem) - set(jsonstem)
+            raise AssertionError(
+                f"检查不通过, json文件的数量和图片文件的数量一致: {diff}"
+                f"检查不通过, json文件的数量和图片文件的数量一致: {diff2}"
+            )
     assert len(json_files) == len(image_files), (
-        f"检查不通过, json_dir下的json文件数量和image_dir下的图片文件数量不一致,json_files数量: {len(json_files)}, image_files数量: {len(image_files)}"
+        f"检查不通过, json文件的数量和图片文件的数量不一致, "
+        f"json_files数量: {len(json_files)}, image_files数量: {len(image_files)}"
     )
 
     ### 2. 提取json文件的stem和图片文件的stem,检查是否一致, 且不能重复
