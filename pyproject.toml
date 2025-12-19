@@ -1,6 +1,6 @@
 [project]
 name = "cfun"
-dynamic = ["version"]  
+version = "0.5.7"
 description = "my function library"
 readme = "README.md"
 authors = [{ name = "zoushucai", email = "zoushucai@users.noreply.github.com" }]
@@ -10,10 +10,10 @@ dependencies = [
     "char-similar-z>=0.2.0",
     "pandas>=1.5.0",
     "requests>=2.0.0",
-    "pillow>= 10.0.0",
+    "pillow>=10.0.0",
     "opencv-python>=4.5.0",
     "jsonpath>=0.6.0",
-    "onnxruntime==1.21.0",
+    # "onnxruntime==1.21.0", # 放开版本限制,以免和其他包冲突
     "onnx>=1.18.0",
     "py3-wget>=1.0.0",
     "tenacity>=8.1.0",
@@ -62,13 +62,11 @@ python_functions = "test_*"
 extend-select = ["B"]
 
 [project.scripts]
-testing-demo = "cfun:main"
+testing-demo = "cfun:main" 
 
 [build-system]
-requires = ["hatchling", "uv-dynamic-versioning"]
-build-backend = "hatchling.build"
-[tool.hatch.version]
-source = "uv-dynamic-versioning"
+requires = ["uv_build>=0.9.7,<0.10.0"]
+build-backend = "uv_build"
 
 [project.urls]
 Homepage = "https://github.com/zoushucai/cfun"
